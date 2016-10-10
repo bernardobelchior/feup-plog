@@ -1,3 +1,7 @@
+start:-
+  board(Board, Width),
+  display_board(Board, Width).
+
 board(Board, Width):-
   Board = [['A', 'A', 'A'],
           ['A', 'A', 'A', 'A'],
