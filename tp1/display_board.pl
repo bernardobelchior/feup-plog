@@ -1,78 +1,49 @@
 start:-
   board(Board),
-  display_board(Board, 0).
-
+  display_board(Board, 1).
 
 board(Board):-
   Board = [
-  ['', '', '', '', 'O', 'O', 'O', 'O', '', '', '', ''],
-  ['', '', '', '', 'O', 'O', 'X', 'O', 'O', 'O', 'O', ''],
-  ['', '', '', 'O', 'O', 'O', 'O', 'O', 'O', 'W', 'O', ''],
-  ['', '', '', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', ''],
-  ['', '', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', ''],
-  ['', '', '', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'X', ''],
-  ['', '', 'O', 'O', 'O', 'X', 'O', 'O', 'O', 'O', ' ', ''],
-  ['', '', 'O', 'O', 'O', 'O', 'O', 'O', 'W', 'O', 'O', ''],
-  ['', '', '', '', '', 'O', 'O', 'O', 'O', '', '', '']
-  ].
-
-/*board(Board):-
-  Board = [
-          ['O', 'O', 'O', 'O', ' ', ' ', ' ', ' '],
-          ['O', 'O', 'O', 'X', 'O', 'O', 'O', ''],
-          ['O', 'O', 'O', 'O', 'O', 'W', 'O', ' '],
-          ['O', 'W', 'O', 'O', 'O', 'O', 'O', ' '],
-          ['O', 'O', 'O', 'O', 'O', 'O', 'O', ' '],
-          [' ', 'O', 'O', 'O', 'O', 'O', 'X', 'O'],
-          ['O', 'X', 'O', 'O', 'O', 'O', 'O', ' '],
-          [' ', 'O', 'O', 'O', 'W', 'O', 'O', 'O'],
-          [' ', ' ', ' ', 'O', 'O', 'O', 'O', ' ']].*/
+  [null, null, null, null, 'O', 'O', 'O', 'O', null, null, null],
+  [null, null, null, null, 'O', 'O', 'O', 'X', 'O', 'O', 'O'],
+  [null, null, null, 'O', 'O', 'O', 'O', 'O', 'W', 'O', null],
+  [null, null, null, 'O', 'W', 'O', 'O', 'O', 'O', 'O', null],
+  [null, null, 'O', 'O', 'O', 'O', 'O', 'O', 'O', null, null],
+  [null, null, space, 'O', 'O', 'O', 'O', 'O', 'X', 'O', null],
+  [null, null, 'O', 'X', 'O', 'O', 'O', 'O', 'O', null, null],
+  [null, space, 'O', 'O', 'O', 'W', 'O', 'O', 'O', null, null],
+  [null, space, space, space, 'O', 'O', 'O', 'O', null, null, null]].
 
 display_board([], Offset).
-display_board([Even | Rest], Offset):-
-  /*indent_line(Even, Width),*/
+display_board([Line | Rest], Offset):-
   space(Offset),
-  display_even_line(Even), nl,
-  display_rest(Rest, Offset).
+  display_line(Line), nl,
+  negate(Offset, NextOffset),
+  display_board(Rest, NextOffset).
 
-display_rest([], Offset).
-display_rest([Odd | Rest], Offset):-
-  /*indent_line(Odd, Width),*/
-  space(Offset),
-  display_odd_line(Odd), nl,
-  Offset1 is Offset+1,
-  display_board(Rest, Offset1).
+display_line([]).
+display_line([Element | Rest]):-
+  write_element(Element),
+  write_space_if_not_null(Element),
+  display_line(Rest).
 
-display_odd_line([]).
-display_odd_line([Current | Rest]):-
-  write(Current), write(' '),
-  display_odd_line(Rest).
+negate(0, Result):-
+  Result is 1.
+negate(A, Result):-
+  Result is 0.
 
-display_even_line([]).
-display_even_line([Current | Rest]):-
-  write(' '), write(Current),
-  display_even_line(Rest).
+write_space_if_not_null(null).
+write_space_if_not_null(Element):-
+  write(' ').
 
-  space(0).
-  space(Count):-
-    write('  '),
-    C1 is Count - 1,
-  space(C1).
-
-/*indent_line([Line | Rest], Width):-
-  get_line_width([Line | Rest], LineWidth),
-  Spaces is round(Width - LineWidth/2),
-  space(Spaces).
-
-
+write_element(null).
+write_element(space):-
+  write(' ').
+write_element(Element):-
+  write(Element).
 
 space(0).
 space(Count):-
-  write('  '),
+  write(' '),
   C1 is Count - 1,
   space(C1).
-
-get_line_width([], 0).
-get_line_width([Element | Rest], LineWidth):-
-  get_line_width(Rest, LineWidth1),
-  LineWidth is LineWidth1 + 1.*/
