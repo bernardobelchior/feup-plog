@@ -1,3 +1,5 @@
+include('list_utils.pl').
+
 start:-
   board(Board, Width),
   display_board(Board, Width).
@@ -47,3 +49,6 @@ get_line_width([], 0).
 get_line_width([Element | Rest], LineWidth):-
   get_line_width(Rest, LineWidth1),
   LineWidth is LineWidth1 + 1.
+
+
+%get element in x
