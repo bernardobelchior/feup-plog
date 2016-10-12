@@ -51,7 +51,7 @@ write_element(Element, Position, Players):-
 
 get_player_char_in_position([[PlayerChar | [PlayerPosition]] | Others], Position, Char):-
   equal_position(PlayerPosition, Position),
-  Char is PlayerChar;
+  Char = PlayerChar;
   get_player_char_in_position(Others, Position, Char).
 
 equal_position([X1,Y1], [X2, Y2]):-
