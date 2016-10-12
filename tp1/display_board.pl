@@ -1,51 +1,65 @@
-include('list_utils.pl').
+
+:-include('list_utils.pl').
+:-include('player.pl').
 
 start:-
-  board(Board, Width),
-  display_board(Board, Width).
+  board(Board),
+  display_board(Board, 1, 0).
 
-board(Board, Width):-
-  Board = [['A', 'A', 'A'],
-          ['A', 'A', 'A', 'A'],
-          ['A', 'A', 'A', 'A', 'A'],
-          ['A', 'A', 'A', 'A'],
-          ['A', 'A', 'A']],
-  Width is 5.
+board(Board):-
+  Board = [
+  [null, null, null, null, 'O', 'O', 'O', 'O', null, null, null],
+  [null, null, null, null, 'O', 'O', 'O', 'X', 'O', 'O', 'O'],
+  [null, null, null, 'O', 'O', 'O', 'O', 'O', 'W', 'O', null],
+  [null, null, null, 'O', 'W', 'O', 'O', 'O', 'O', 'O', null],
+  [null, null, 'O', 'O', 'O', 'O', 'O', 'O', 'O', null, null],
+  [null, null, space, 'O', 'O', 'O', 'O', 'O', 'X', 'O', null],
+  [null, 'O', 'X', 'O', 'O', 'O', 'O', 'O', null, null, null],
+  [null, space, 'O', 'O', 'O', 'W', 'O', 'O', 'O', null, null],
+  [space, space, space, 'O', 'O', 'O', 'O', null, null, null, null]].
 
-display_board([], Width).
-display_board([Even | Rest], Width):-
-  indent_line(Even, Width),
-  display_even_line(Even), nl,
-  display_rest(Rest, Width).
+display_board([], Offset, Y).
+display_board([Line | Rest], Offset, Y):-
+  space(Offset),
+  display_line(Line, [-4, Y]), nl,
+  negate(Offset, NextOffset),
+  NextY is Y + 1,
+  display_board(Rest, NextOffset, NextY).
 
-display_rest([], Width).
-display_rest([Odd | Rest], Width):-
-  indent_line(Odd, Width),
-  display_odd_line(Odd), nl,
-  display_board(Rest, Width).
+display_line([], [X, Y]).
+display_line([Element | Rest], [X, Y]):-
+  write_element(Element, [X, Y]),
+  write_space_if_not_null(Element),
+  NextX is X+1,
+  display_line(Rest, [NextX, Y]).
 
-display_odd_line([]).
-display_odd_line([Current | Rest]):-
-  write(' '), write(Current),
-  display_odd_line(Rest).
+negate(0, Result):-
+  Result is 1.
+negate(A, Result):-
+  Result is 0.
 
-display_even_line([]).
-display_even_line([Current | Rest]):-
-  write(Current), write(' '),
-  display_even_line(Rest).
+write_space_if_not_null(null).
+write_space_if_not_null(Element):-
+  write(' ').
 
-indent_line([Line | Rest], Width):-
-  get_line_width([Line | Rest], LineWidth),
-  Spaces is round(Width - LineWidth/2),
-  space(Spaces).
+write_element(null, Position).
+write_element(space, Position):-
+  write(' ').
+write_element(Element, Position):-
+  players(Players), check_and_display_players(Players, Position);
+  write(Element).
+
+check_and_display_players([Player | Rest], Position):-
+  player(Player, PlayerPosition),
+  equal_position(PlayerPosition, Position),
+  write(Player);
+  check_and_display_players(Rest, Position).
+
+equal_position([X1,Y1], [X2, Y2]):-
+  X1 = X2, Y1 = Y2.
 
 space(0).
 space(Count):-
-  write('  '),
+  write(' '),
   C1 is Count - 1,
   space(C1).
-
-get_line_width([], 0).
-get_line_width([Element | Rest], LineWidth):-
-  get_line_width(Rest, LineWidth1),
-  LineWidth is LineWidth1 + 1.
