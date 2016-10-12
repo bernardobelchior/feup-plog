@@ -1,16 +1,14 @@
+initialize(Players):-
+  Players = [
+  ['P', [1,1]],
+  ['T', [3,7]]
+  ].
 
-%players
-players(Players):-
-  Players = ['P', 'T'].
-
-player('P', [X, Y]):-
-  X is 1,
-  Y is 1.
-player('T', [X, Y]):-
-  X is 3,
-  Y is 7.
-player('V').
-player('Z').
+get_position([], Player, Position).
+get_position([[PlayerChar | Pos] | Others], Player, Position):-
+  PlayerChar = Player,
+  Position is Pos;
+  get_position(Others, Player, Position).
 
 %ships list, the list is a list of lists which have 2 elements, representing the position of the ships
 ships(Ships):-
