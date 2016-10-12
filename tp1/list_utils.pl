@@ -23,6 +23,9 @@ list_replace_all([],Y,Z,[]).
 list_replace_nth([X|Xs],0,Z,[Z|Xs]).
 list_replace_nth([X|Xs],N,Z,[X|Zs]) :- N1 is N-1, list_replace_nth(Xs,N1,Z,Zs).
 
+list_length([],0).
+list_length([X|Xs],N) :- list_length(Xs,N1), N is N1+1.
+
 %bidimensional list utilities
 
 list_get_xy([L|Ls],X,Y,Z) :- list_get_nth([L|Ls],Y,K), list_get_nth(K,X,Z).
