@@ -1,3 +1,5 @@
+
+:-include('list_utils.pl').
 :-include('player.pl').
 
 start:-
