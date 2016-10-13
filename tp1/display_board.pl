@@ -1,23 +1,20 @@
-
+:-include('logic.pl').
 :-include('list_utils.pl').
 :-include('player.pl').
 
 start:-
   initialize(Players),
   board(Board),
+  /*write('   '), nl,
+  display_columns(Board, -4), nl*/
   display_board(Board, Players, 1, 0).
 
-board(Board):-
-  Board = [
-  [null, null, null, null, '0', '3', 'G', '2', null, null, null],
-  [null, null, null, null, 'B', '2', '1', 'X', '1', '1', '1'],
-  [null, null, null, '2', '3', '0', '2', '2', 'W', '3', null],
-  [null, null, null, '3', 'W', '1', 'R', '1', 'B', '1', null],
-  [null, null, '0', '2', '3', '0', '0', '1', '2', null, null],
-  [null, null, space, 'R', '3', 'G', '0', '1', 'X', '1', null],
-  [null, '3', 'X', 'G', '3', '2', '1', '1', null, null, null],
-  [null, space, '1', '3', 'R', 'W', '0', '1', '1', null, null],
-  [space, space, space, '1', 'B', '0', '2', null, null, null, null]].
+/*display_columns([[] | Rest], StartingNumber).
+display_columns([[Element | OtherElements] | Rest], StartingNumber):-
+  %format('~2d', StartingNumber)
+  write(StartingNumber), write(' '),
+  NextNumber is StartingNumber + 1,
+  display_columns([OtherElements , Rest], NextNumber).*/
 
 display_board([], Players, Offset, Y).
 display_board([Line | Rest], Players, Offset, Y):-
@@ -34,11 +31,6 @@ display_line([Element | Rest], [X, Y], Players):-
   NextX is X+1,
   display_line(Rest, [NextX, Y], Players).
 
-negate(0, Result):-
-  Result is 1.
-negate(A, Result):-
-  Result is 0.
-
 write_space_if_not_null(null).
 write_space_if_not_null(Element):-
   write(' ').
@@ -51,13 +43,9 @@ write_element(Element, Position, Players):-
   write(Char);
   write(Element).
 
-get_player_char_in_position([[PlayerChar | [PlayerPosition]] | Others], Position, Char):-
-  equal_position(PlayerPosition, Position),
-  Char = PlayerChar;
-  get_player_char_in_position(Others, Position, Char).
+get_player_char_in_position(Players, Position, Char):-
+  get_player_in_position(Players, Position, [Char, PlayerPosition]).
 
-equal_position([X1,Y1], [X2, Y2]):-
-  X1 = X2, Y1 = Y2.
 
 space(0).
 space(Count):-
