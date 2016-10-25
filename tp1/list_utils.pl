@@ -29,3 +29,5 @@ list_length([X|Xs],N) :- list_length(Xs,N1), N is N1+1.
 %bidimensional list utilities
 
 list_get_xy([L|Ls],X,Y,Z) :- list_get_nth([L|Ls],Y,K), list_get_nth(K,X,Z).
+
+is_empty([]).

@@ -1,14 +1,15 @@
+%retirar pelicas. utilizar letras minusculas.
 board(Board):-
   Board = [
-  [null, null, null, null, '0', '3', 'G', '2', null, null, null],
-  [null, null, null, null, 'B', '2', '1', 'X', '1', '1', '1'],
-  [null, null, null, '2', '3', '0', '2', '2', 'W', '3', null],
-  [null, null, null, '3', 'W', '1', 'R', '1', 'B', '1', null],
-  [null, null, '0', '2', '3', '0', '0', '1', '2', null, null],
-  [null, null, space, 'R', '3', 'G', '0', '1', 'X', '1', null],
-  [null, '3', 'X', 'G', '3', '2', '1', '1', null, null, null],
-  [null, space, '1', '3', 'R', 'W', '0', '1', '1', null, null],
-  [space, space, space, '1', 'B', '0', '2', null, null, null, null]].
+  [null, null, null, null, system0, system3, greenNebula, system2, null, null, null],
+  [null, null, null, null, blueNebula, system2, system1, blackHole, system1, system1, system1],
+  [null, null, null, system2, system3, system0, system2, system2, wormhole, system3, null],
+  [null, null, null, system3, wormhole, system1, redNebula, system1, blueNebula, system1, null],
+  [null, null, system0, system2, system3, system0, system0, system1, system2, null, null],
+  [null, null, space, redNebula, system3, greenNebula, system0, system1, blackHole, system1, null],
+  [null, system3, blackHole, greenNebula, system3, system2, system1, system1, null, null, null],
+  [null, space, system1, system3, redNebula, wormhole, system0, system1, system1, null, null],
+  [space, space, space, system1, blueNebula, system0, system2, null, null, null, null]].
 
 initialize(Players):-
   Players = [
