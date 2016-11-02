@@ -31,3 +31,8 @@ list_length([X|Xs],N) :- list_length(Xs,N1), N is N1+1.
 list_get_xy([L|Ls],X,Y,Z) :- list_get_nth([L|Ls],Y,K), list_get_nth(K,X,Z).
 
 is_empty([]).
+
+list_get_last_line([Line], LastLine):-
+  LastLine = Line.
+list_get_last_line([Line | OtherLines], LastLine):-
+  list_get_last_line(OtherLines, LastLine).

@@ -1,4 +1,3 @@
-%retirar pelicas. utilizar letras minusculas.
 board(Board):-
   Board = [
   [null, null, null, null, system0, system3, greenNebula, system2, null, null, null],
