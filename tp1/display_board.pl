@@ -65,12 +65,14 @@ print_second_row([Element | Rest]):-
 print_third_row([], [X, Y], Players).
 print_third_row([Element | Rest], [X, Y], Players):-
   print_element_first_line(Element, [X,Y], Players),
-  print_third_row(Rest, [X, Y], Players).
+  NextX is X + 1,
+  print_third_row(Rest, [NextX, Y], Players).
 
 print_fourth_row([], [X, Y], Players).
 print_fourth_row([Element | Rest], [X, Y], Players):-
   print_element_second_line(Element, [X,Y], Players),
-  print_fourth_row(Rest, [X, Y], Players).
+  NextX is X + 1,
+  print_fourth_row(Rest, [NextX, Y], Players).
 
 print_fifth_row([]).
 print_fifth_row([null | Rest]):-
@@ -96,13 +98,7 @@ print_offset(1, Y):-
   space(Indentation),
   write('    ').
 
-space(0).
-space(Num):-
-  write(' '),
-  N1 is Num-1,
-  space(N1).
-
-is_last_visible_element_in_line([]).
+/*is_last_visible_element_in_line([]).
 is_last_visible_element_in_line([Element | Rest]):-
     is_last_visible_element_in_line(Rest),
     is_not_visible_element(Rest).
@@ -119,7 +115,7 @@ is_visible_element(redNebula).
 is_visible_element(greenNebula).
 is_visible_element(blueNebula).
 is_visible_element(wormhole).
-is_visible_element(blackHole).
+is_visible_element(blackHole).*/
 
 
 %Debug
@@ -154,57 +150,51 @@ space(Count):-
 
 % WRITE ELEMENTS
 
-  print_element_first_line(null, Position, Players):-
-    write('         ').
-  print_element_second_line(null, Position, Players):-
-    write('         ').
+print_element_first_line(null, Position, Players):-
+  write('         ').
 
-  print_element_first_line(space, Position, Players):-
-    write('        ').
-  print_element_second_line(space, Position, Players):-
-    write('        ').
+print_element_first_line(space, Position, Players):-
+  write('        ').
 
-  print_element_first_line(wormhole, Position, Players):-
-    write('| Worm  ').
-  print_element_second_line(wormhole, Position, Players):-
-    write('| Hole  ').
+print_element_first_line(wormhole, Position, Players):-
+  write('|Worm H.').
 
-  print_element_first_line(blackHole, Position, Players):-
-    write('| Black ').
-  print_element_second_line(blackHole, Position, Players):-
-    write('| Hole  ').
+print_element_first_line(blackHole, Position, Players):-
+  write('|BlackH.').
 
-    print_element_first_line(system0, Position, Players):-
-      write('|       ').
-    print_element_second_line(system0, Position, Players):-
-      write('|       ').
+print_element_first_line(system0, Position, Players):-
+  write('|       ').
 
-      print_element_first_line(system1, Position, Players):-
-        write('|   *   ').
-      print_element_second_line(system1, Position, Players):-
-        write('|       ').
+print_element_first_line(system1, Position, Players):-
+  write('|   *   ').
 
-        print_element_first_line(system2, Position, Players):-
-          write('|  *  * ').
-        print_element_second_line(system2, Position, Players):-
-          write('|       ').
+print_element_first_line(system2, Position, Players):-
+  write('|  *  * ').
 
-          print_element_first_line(system3, Position, Players):-
-            write('| * * * ').
-          print_element_second_line(system3, Position, Players):-
-            write('|       ').
+print_element_first_line(system3, Position, Players):-
+  write('| * * * ').
 
-            print_element_first_line(blueNebula, Position, Players):-
-              write('|~Blue~~').
-            print_element_second_line(blueNebula, Position, Players):-
-              write('|       ').
+print_element_first_line(blueNebula, Position, Players):-
+  write('|~Blue~~').
 
 print_element_first_line(greenNebula, Position, Players):-
   write('|~Green~').
-print_element_second_line(greenNebula, Position, Players):-
-  write('|       ').
 
 print_element_first_line(redNebula, Position, Players):-
   write('|~~Red~~').
-print_element_second_line(redNebula, Position, Players):-
+
+
+print_element_second_line(null, Position, Players):-
+  write('         ').
+
+print_element_second_line(space, Position, Players):-
+  write('        ').
+
+print_element_second_line(Element, Position, Players):-
+  get_player_ship_in_position(Players, Position, PlayerNo, ShipNo),
+  write('| P'),
+  write(PlayerNo),
+  write(' S'),
+  write(ShipNo),
+  write(' ');
   write('|       ').
