@@ -13,7 +13,7 @@ board(Board):-
 initialize(Players):-
   Players = [
   [1, [0,1], [1,1], [1,0]],
-  [2, [2,7], [3,7], [3,8]]
+  [2, [2,7], [3,7], [2,8]]
   ].
 
 %Not sure if this works correctly because of PlayerChar = Player.
@@ -36,13 +36,14 @@ equal_position([X1,Y1], [X2, Y2]):-
   X1 == X2, Y1 == Y2.
 
 get_player_ship_in_position([[PlayerId | PlayerShips] | Rest], Position, PlayerNo, ShipNo):-
+  %trace,
   get_ship_number_in_position(PlayerShips, Position, ShipNo),
   PlayerNo = PlayerId;
   get_player_ship_in_position(Rest, Position, PlayerNo, ShipNo).
 
 get_ship_number_in_position([FirstShipPosition | OtherShips], Position, ShipNo):-
   equal_position(Position, FirstShipPosition),
-  ShipNo = ShipNo + 1;
+  ShipNo = 1;
   get_ship_number_in_position(OtherShips, Position, ShipNo).
 
 %Returns the player in the given position. Fails if no player is found.
