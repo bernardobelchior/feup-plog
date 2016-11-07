@@ -46,23 +46,21 @@ negate(A, Result):-
 equal_position([X1,Y1], [X2, Y2]):-
   X1 == X2, Y1 == Y2.
 
+%Gets the player and ship in the specified position
 get_player_ship_in_position([[PlayerId | PlayerShips] | Rest], Position, PlayerNo, ShipNo):-
   %trace,
-  get_ship_number_in_position(PlayerShips, Position, ShipNo),
+  get_ship_number_in_position(PlayerShips, Position, CurShipNo, ShipNo),
   PlayerNo = PlayerId;
   get_player_ship_in_position(Rest, Position, PlayerNo, ShipNo).
 
-get_ship_number_in_position([FirstShipPosition | OtherShips], Position, ShipNo):-
+%Gets the ship in the specified position
+get_ship_number_in_position([FirstShipPosition | OtherShips], Position, CurShipNo, ShipNo):-
   equal_position(Position, FirstShipPosition),
+  CurShipNo = 1,
   ShipNo = 1;
-  get_ship_number_in_position(OtherShips, Position, ShipNo).
-
-%Returns the player in the given position. Fails if no player is found.
-get_player_in_position([[PlayerChar, PlayerPosition] | Others], Position, [ReturnChar, ReturnPosition]):-
-  equal_position(PlayerPosition, Position),
-  ReturnChar = PlayerChar,
-  ReturnPosition = PlayerPosition;
-  get_player_in_position(Others, Position, [ReturnChar, ReturnPosition]).
+  get_ship_number_in_position(OtherShips, Position, CurShipNo, ShipNo),
+  %ShipNo is CurShipNo + 1.
+  ShipNo = 1.
 
 %checks if a direction is valid, X and Y are the distances in X and Y that will be traveled
 valid_direction(X,Y) :- (X \= 0; Y\=0), ((X \= 0, Y = 0); (X = 0, Y \= 0); (X = -Y)).
