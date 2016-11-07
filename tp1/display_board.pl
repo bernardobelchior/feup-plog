@@ -2,10 +2,19 @@
 :-include('list_utils.pl').
 
 start:-
-  initialize(Players),
-  board(Board),
+  initialize(Board, Players, NumPlayers),
+  play(Board, Players, NumPlayers, 1).
   %display_first_line_top(Board, [-4, 0], Players, 1),
-  display_board(Board, Players, 1, 0).
+
+play(Board, Players, NumPlayers, CurrentPlayer):-
+  display_board(Board, Players, 1, 0)%,
+  %select_ship(Players, CurrentPlayer, ShipNum),
+  %select_ship_movement(Board, Players, CurrentPlayer, ShipNum),
+  %move_ship(Players, CurrentPlayer, ShipNum),
+  %select_action()
+  %next_player(NumPlayers, CurrentPlayer, NextPlayer),
+  %play(Board, Players, NumPlayers, NextPlayer).
+  .
 
 display_board([Line], Players, Offset, Y):-
   display_line(Line, [-4, Y], Players, Offset),

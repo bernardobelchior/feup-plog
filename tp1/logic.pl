@@ -1,4 +1,4 @@
-board(Board):-
+create_board(Board):-
   Board = [
   [null, null, null, null, system0, system3, greenNebula, system2, null, null, null],
   [null, null, null, null, blueNebula, system2, system1, blackHole, system1, system1, system1],
@@ -10,11 +10,17 @@ board(Board):-
   [null, space, system1, system3, redNebula, wormhole, system0, system1, system1, null, null],
   [space, space, space, system1, blueNebula, system0, system2, null, null, null, null]].
 
-initialize(Players):-
+create_players(Players, NumPlayers):-
   Players = [
   [1, [0,1], [1,1], [1,0]],
   [2, [2,7], [3,7], [2,8]]
-  ].
+  ],
+  NumPlayers = 2.
+
+initialize(Board, Players, NumPlayers):-
+  create_board(Board),
+  create_players(Players, NumPlayers).
+
 
 %Not sure if this works correctly because of PlayerChar = Player.
 %Doesn't it assign Player to PlayerChar??
@@ -24,6 +30,11 @@ get_player_position([[PlayerChar | Pos] | Others], Player, Position):-
   PlayerChar = Player,
   Position is Pos;
   get_player_position(Others, Player, Position).
+
+next_player(NumPlayers, CurrentPlayer, NextPlayer):-
+  CurrentPlayer >= NumPlayers,
+  NextPlayer = 1;
+  NextPlayer is CurrentPlayer + 1.
 
 %Not
 negate(0, Result):-
