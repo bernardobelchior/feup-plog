@@ -10,16 +10,25 @@ create_board(Board):-
   [null, space, system1, system3, redNebula, wormhole, system0, system1, system1, null, null],
   [space, space, space, system1, blueNebula, system0, system2, null, null, null, null]].
 
-create_players(Players, NumPlayers):-
-  Players = [
-  [1, [0,1], [1,1], [1,0]],
-  [2, [2,7], [3,7], [2,8]]
+create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
+  Ships = [
+  [[0,1], [1,1], [1,0]],
+  [[2,7], [3,7], [2,8]]
   ],
-  NumPlayers = 2.
+  TradeStations = [
+  [],
+  []
+  ],
+  Colonies = [
+  [],
+  []
+  ],
+  NumPlayers = 2,
+  NumShipsPerPlayer = 3.
 
-initialize(Board, Players, NumPlayers):-
+initialize(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
   create_board(Board),
-  create_players(Players, NumPlayers).
+  create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer).
 
 
 %Not sure if this works correctly because of PlayerChar = Player.
@@ -46,21 +55,19 @@ negate(A, Result):-
 equal_position([X1,Y1], [X2, Y2]):-
   X1 == X2, Y1 == Y2.
 
-%Gets the player and ship in the specified position
-get_player_ship_in_position([[PlayerId | PlayerShips] | Rest], Position, PlayerNo, ShipNo):-
-  %trace,
-  get_ship_number_in_position(PlayerShips, Position, CurShipNo, ShipNo),
-  PlayerNo = PlayerId;
-  get_player_ship_in_position(Rest, Position, PlayerNo, ShipNo).
+%Gets the player and piece in the specified position
+get_player_piece_in_position([PlayerPieces | OtherPlayersPieces], Position, PlayerNo, PieceNo):-
+  get_piece_number_in_position(PlayerPieces, Position, PieceNo),
+  PlayerNo = 1;
+  get_player_piece_in_position(OtherPlayersPieces, Position, NextPlayerNo, PieceNo),
+  PlayerNo is NextPlayerNo + 1.
 
-%Gets the ship in the specified position
-get_ship_number_in_position([FirstShipPosition | OtherShips], Position, CurShipNo, ShipNo):-
-  equal_position(Position, FirstShipPosition),
-  CurShipNo = 1,
-  ShipNo = 1;
-  get_ship_number_in_position(OtherShips, Position, CurShipNo, ShipNo),
-  %ShipNo is CurShipNo + 1.
-  ShipNo = 1.
+%Gets the piece in the specified position
+get_piece_number_in_position([FirstPiecePosition | OtherPieces], Position, PieceNo):-
+  equal_position(Position, FirstPiecePosition),
+  PieceNo = 1;
+  get_piece_number_in_position(OtherPieces, Position, NextPieceNo),
+  PieceNo is NextPieceNo + 1.
 
 %checks if a direction is valid, X and Y are the distances in X and Y that will be traveled
 valid_direction(X,Y) :- (X \= 0; Y\=0), ((X \= 0, Y = 0); (X = 0, Y \= 0); (X = -Y)).
