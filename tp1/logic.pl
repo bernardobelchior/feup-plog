@@ -62,6 +62,9 @@ get_piece_number_in_position([FirstPiecePosition | OtherPieces], Position, Piece
   get_piece_number_in_position(OtherPieces, Position, NextPieceNo),
   PieceNo is NextPieceNo + 1.
 
+get_tile_in_position(Board, [X , Y], Tile):-
+  list_get_xy(Board, X, Y, Tile).
+
 %checks if a direction is valid, X and Y are the distances in X and Y that will be traveled
 valid_direction(X,Y) :- (X \= 0; Y\=0), ((X \= 0, Y = 0); (X = 0, Y \= 0); (X = -Y)).
 
@@ -71,6 +74,33 @@ move_ship(Ships, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
   list_get_nth(Ships, PlayerNo, PlayerShips),
   list_replace_nth(PlayerShips, ShipNo, NewShipPosition, NewPlayerShips),
   list_replace_nth(Ships, PlayerNo, NewPlayerShips, NewShips).
+
+% TotalNumTiles must be bigger than one in order to allow checking for wormholes
+is_direction_valid(Board, Position, Direction):-
+    is_move_valid(Board, Position, Direction, 1, 2).
+
+is_move_valid(Board, Position, Direction, 1, TotalNumTiles):-
+  update_position(Position, Direction, 1, NewPosition),
+  get_tile_in_position(Board, NewPosition, Tile),
+  is_tile_passable(Tile).
+is_move_valid(Board, Position, Direction, NumTiles, TotalNumTiles):-
+  update_position(Position, Direction, 1, NewPosition),
+  get_tile_in_position(Board, NewPosition, Tile),
+  is_tile_passable(Tile),
+  NewNumTiles is NumTiles - 1,
+  is_move_valid(Board, NewPosition, Direction, -NewNumTiles, TotalNumTiles).
+
+is_tile_passable(system0).
+is_tile_passable(system1).
+is_tile_passable(system2).
+is_tile_passable(system3).
+is_tile_passable(greenNebula).
+is_tile_passable(redNebula).
+is_tile_passable(blueNebula).
+% FIXME: Currently wormhole are impassable, but they are passable if they meet
+% certain requirements
+%is_tile_passable(wormhole, Position, Direction, TotalNumTiles):-
+  %TotalNumTiles is 1,
 
 /*Direction
 * Northwest - x   y--
