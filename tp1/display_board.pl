@@ -7,21 +7,33 @@ start:-
   %display_first_line_top(Board, [-4, 0], Ships, 1),
 
 play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
-  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, 1).
+  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, 0).
 play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
   display_board(Board, Ships, TradeStations, Colonies),
   display_player_info(CurrentPlayer, NumShipsPerPlayer),
   display_ship_selection_menu(NumShipsPerPlayer),
   select_ship(Ships, CurrentPlayer, NumShipsPerPlayer, ShipNo),
-  display_ship_movement_info(PlayerNo, ShipNo),
-  select_ship_movement(PlayerNo, ShipNo, Direction).
-  %move_ship(Ships, CurrentPlayer, ShipNum),
+  display_ship_direction_info(ShipNo),
+  select_ship_direction(Direction),
+  display_ship_num_tiles_info,
+  select_ship_num_tiles(NumTiles),
+  move_ship(Ships, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips),
   %select_action()
-  %next_player(NumPlayers, CurrentPlayer, NextPlayer),
-  %play(Board, Ships, NumPlayers, NextPlayer).
+  next_player(NumPlayers, CurrentPlayer, NextPlayer),
+  play(Board, NewShips, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NextPlayer).
 
-display_ship_movement_info(PlayerNo, ShipNo):-
-  write('Ship '), write(ShipNo),
+display_ship_num_tiles_info:-
+  write('How many tiles would you like to move in the chosen direction?'), nl.
+
+select_ship_num_tiles(NumTiles):-
+  read(ReadNumTiles), get_char(_),
+  integer(ReadNumTiles),
+  ReadNumTiles > 0,
+  NumTiles = ReadNumTiles. %check if valid
+
+display_ship_direction_info(ShipNo):-
+  NewShipNo is ShipNo + 1,
+  write('Ship '), write(NewShipNo),
   write(' can move in the following directions:'), nl,
   write('1 - Northwest'), nl,
   write('2 - Northeast'), nl,
@@ -31,17 +43,25 @@ display_ship_movement_info(PlayerNo, ShipNo):-
   write('6 - West'), nl,
   write('Please choose one: ').
 
-select_ship_movement(PlayerNo, ShipNo, Direction):-
+select_ship_direction(Direction):-
   read(ReadDirection), get_char(_),
   integer(ReadDirection),
   ReadDirection =< 6,
   ReadDirection > 0,
-  Direction = ReadDirection;
+  number_to_direction(ReadDirection, Direction);
   write('Invalid direction. Try again.'), nl.
+
+number_to_direction(1, northwest).
+number_to_direction(2, northeast).
+number_to_direction(3, east).
+number_to_direction(4, southeast).
+number_to_direction(5, southwest).
+number_to_direction(6, west).
 
 display_player_info(PlayerNo, NumShipsPerPlayer):-
   write('It is Player '),
-  write(PlayerNo),
+  NewPlayerNo is PlayerNo + 1,
+  write(NewPlayerNo),
   write('\'s turn.'), nl,
   write('Select a ship to move, between 1 and '),
   write(NumShipsPerPlayer), write(':'), nl.
@@ -51,7 +71,7 @@ select_ship(Ships, CurrentPlayer, NumShipsPerPlayer, ShipNo):-
   integer(ChosenShip),
   ChosenShip =< NumShipsPerPlayer,
   ChosenShip > 0,
-  ShipNo = ChosenShip;
+  ShipNo is ChosenShip - 1;
   write('Invalid ship number. Try again.'), nl,
   select_ship(Ships, CurrentPlayer, NumShipsPerPlayer, ShipNo).
 
@@ -250,21 +270,27 @@ print_element_second_line(space, Position, Ships, TradeStations, Colonies):-
 
 print_element_second_line(Element, Position, Ships, TradeStations, Colonies):-
   get_player_piece_in_position(Ships, Position, PlayerNo, ShipNo),
+  NewPlayerNo is PlayerNo + 1,
+  NewShipNo is ShipNo + 1,
   write('| P'),
-  write(PlayerNo),
+  write(NewPlayerNo),
   write(' S'),
-  write(ShipNo),
+  write(NewShipNo),
   write(' ');
   get_player_piece_in_position(TradeStations, Position, PlayerNo, TradeStationNo),
+  NewPlayerNo is PlayerNo + 1,
+  NewTradeStationNo is TradeStationNo + 1,
   write('| P'),
-  write(PlayerNo),
+  write(NewPlayerNo),
   write(' T'),
-  write(TradeStationNo),
+  write(NewTradeStationNo),
   write(' ');
   get_player_piece_in_position(Colonies, Position, PlayerNo, ColonyNo),
+  NewPlayerNo is PlayerNo + 1,
+  NewColonyNo is ColonyNo + 1,
   write('| P'),
-  write(PlayerNo),
+  write(NewPlayerNo),
   write(' C'),
-  write(ColonyNo),
+  write(NewColonyNo),
   write(' ');
   write('|       ').

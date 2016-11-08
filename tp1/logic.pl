@@ -30,19 +30,12 @@ initialize(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer)
   create_board(Board),
   create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer).
 
-
-%Not sure if this works correctly because of PlayerChar = Player.
-%Doesn't it assign Player to PlayerChar??
-%By: Bernardo Belchior
-get_player_position([], Player, Position).
-get_player_position([[PlayerChar | Pos] | Others], Player, Position):-
-  PlayerChar = Player,
-  Position is Pos;
-  get_player_position(Others, Player, Position).
+get_piece_position(PieceList, PlayerNo, PieceNo, PiecePosition):-
+  list_get_xy(PieceList, PlayerNo, PieceNo, PiecePosition).
 
 next_player(NumPlayers, CurrentPlayer, NextPlayer):-
   CurrentPlayer >= NumPlayers,
-  NextPlayer = 1;
+  NextPlayer = 0;
   NextPlayer is CurrentPlayer + 1.
 
 %Not
@@ -58,16 +51,52 @@ equal_position([X1,Y1], [X2, Y2]):-
 %Gets the player and piece in the specified position
 get_player_piece_in_position([PlayerPieces | OtherPlayersPieces], Position, PlayerNo, PieceNo):-
   get_piece_number_in_position(PlayerPieces, Position, PieceNo),
-  PlayerNo = 1;
+  PlayerNo = 0;
   get_player_piece_in_position(OtherPlayersPieces, Position, NextPlayerNo, PieceNo),
   PlayerNo is NextPlayerNo + 1.
 
 %Gets the piece in the specified position
 get_piece_number_in_position([FirstPiecePosition | OtherPieces], Position, PieceNo):-
   equal_position(Position, FirstPiecePosition),
-  PieceNo = 1;
+  PieceNo = 0;
   get_piece_number_in_position(OtherPieces, Position, NextPieceNo),
   PieceNo is NextPieceNo + 1.
 
 %checks if a direction is valid, X and Y are the distances in X and Y that will be traveled
 valid_direction(X,Y) :- (X \= 0; Y\=0), ((X \= 0, Y = 0); (X = 0, Y \= 0); (X = -Y)).
+
+move_ship(Ships, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
+  get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
+  update_position(ShipPosition, Direction, NumTiles, NewShipPosition),
+  list_get_nth(Ships, PlayerNo, PlayerShips),
+  list_replace_nth(PlayerShips, ShipNo, NewShipPosition, NewPlayerShips),
+  list_replace_nth(Ships, PlayerNo, NewPlayerShips, NewShips).
+
+/*Direction
+* Northwest - x   y--
+* Northeast - x++ y--
+* East -      x++ y
+* Southeast - x   y++
+* Southwest - x-- y++
+* West -      x-- y
+*/
+update_position([X,Y], northwest, NumTiles, NewPosition):-
+  NewY is Y - NumTiles,
+  NewPosition = [X, NewY].
+update_position([X,Y], northeast, NumTiles, NewPosition):-
+  NewX is X + NumTiles,
+  NewY is Y - NumTiles,
+  NewPosition = [NewX, NewY].
+update_position([X,Y], east, NumTiles, NewPosition):-
+  NewX is X + NumTiles,
+  NewPosition = [NewX, Y].
+update_position([X,Y], southeast, NumTiles, NewPosition):-
+  NewY is Y + NumTiles,
+  NewPosition = [X, NewY].
+update_position([X,Y], southwest, NumTiles, NewPosition):-
+  NewX is X - NumTiles,
+  NewY is Y + NumTiles,
+  NewPosition = [NewX, NewY].
+update_position([X,Y], west, NumTiles, NewPosition):-
+  NewX is X - NumTiles,
+  NewPosition = [NewX, Y].
