@@ -7,9 +7,15 @@ start:-
   %display_first_line_top(Board, [-4, 0], Ships, 1),
 
 play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
-  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, 0).
-play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
+  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, 0, NewShips).
+play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips):-
   display_board(Board, Ships, TradeStations, Colonies),
+  select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips),
+  next_player(NumPlayers, CurrentPlayer, NextPlayer),
+  play(Board, NewShips, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NextPlayer, AnotherShips).
+
+select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips):-
+  trace,
   display_player_info(CurrentPlayer, NumShipsPerPlayer),
   display_ship_selection_menu(NumShipsPerPlayer),
   select_ship(Ships, CurrentPlayer, NumShipsPerPlayer, ShipNo),
@@ -17,10 +23,11 @@ play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, Curre
   select_ship_direction(Direction),
   display_ship_num_tiles_info,
   select_ship_num_tiles(NumTiles),
-  move_ship(Ships, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips),
+  move_ship_if_valid(Board, Ships, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips);
   %select_action()
-  next_player(NumPlayers, CurrentPlayer, NextPlayer),
-  play(Board, NewShips, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NextPlayer).
+  write('The ship cannot move in the selected way.'),
+  notrace,
+  select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips).
 
 display_ship_num_tiles_info:-
   write('How many tiles would you like to move in the chosen direction?'), nl.
@@ -49,7 +56,8 @@ select_ship_direction(Direction):-
   ReadDirection =< 6,
   ReadDirection > 0,
   number_to_direction(ReadDirection, Direction);
-  write('Invalid direction. Try again.'), nl.
+  write('Invalid direction.'), nl,
+  fail.
 
 number_to_direction(1, northwest).
 number_to_direction(2, northeast).
@@ -73,7 +81,7 @@ select_ship(Ships, CurrentPlayer, NumShipsPerPlayer, ShipNo):-
   ChosenShip > 0,
   ShipNo is ChosenShip - 1;
   write('Invalid ship number. Try again.'), nl,
-  select_ship(Ships, CurrentPlayer, NumShipsPerPlayer, ShipNo).
+  fail.
 
 display_ship_selection_menu(NumShipsPerPlayer):-
   display_ship_selection_menu(NumShipsPerPlayer, 1).
@@ -120,7 +128,7 @@ display_last_line(Line, [X, Y], Offset):-
 
 print_first_row([]).
 print_first_row([null | Rest]):-
-  write('         '),
+  %write('         '),
   print_first_row(Rest).
 print_first_row([space | Rest]):-
   write('        '),
@@ -131,7 +139,7 @@ print_first_row([Element | Rest]):-
 
 print_second_row([]).
 print_second_row([null | Rest]):-
-  write('         '),
+  %write('         '),
   print_second_row(Rest).
 print_second_row([space | Rest]):-
   write('        '),
@@ -168,12 +176,8 @@ print_sixth_row([Element | Rest]):-
   print_triangle_bottom,
   print_sixth_row(Rest).
 
-print_offset(0, Y):-
-  Indentation is Y//2,
-  space(Indentation).
+print_offset(0, Y).
 print_offset(1, Y):-
-  Indentation is Y//2,
-  space(Indentation),
   write('    ').
 
 /*is_last_visible_element_in_line([]).
@@ -228,8 +232,8 @@ space(Count):-
 
 % WRITE ELEMENTS
 
-print_element_first_line(null):-
-  write('         ').
+print_element_first_line(null).
+  %write('         ').
 
 print_element_first_line(space):-
   write('        ').
@@ -262,8 +266,8 @@ print_element_first_line(redNebula):-
   write('|~~Red~~').
 
 
-print_element_second_line(null, Position, Ships, TradeStations, Colonies):-
-  write('         ').
+print_element_second_line(null, Position, Ships, TradeStations, Colonies).
+  %write('         ').
 
 print_element_second_line(space, Position, Ships, TradeStations, Colonies):-
   write('        ').

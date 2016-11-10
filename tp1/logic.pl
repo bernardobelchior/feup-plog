@@ -34,9 +34,9 @@ get_piece_position(PieceList, PlayerNo, PieceNo, PiecePosition):-
   list_get_xy(PieceList, PlayerNo, PieceNo, PiecePosition).
 
 next_player(NumPlayers, CurrentPlayer, NextPlayer):-
-  CurrentPlayer >= NumPlayers,
-  NextPlayer = 0;
-  NextPlayer is CurrentPlayer + 1.
+  CurrentPlayer < NumPlayers,
+  NextPlayer is CurrentPlayer + 1;
+  NextPlayer = 0.
 
 %Not
 negate(0, Result):-
@@ -68,8 +68,12 @@ get_tile_in_position(Board, [X , Y], Tile):-
 %checks if a direction is valid, X and Y are the distances in X and Y that will be traveled
 valid_direction(X,Y) :- (X \= 0; Y\=0), ((X \= 0, Y = 0); (X = 0, Y \= 0); (X = -Y)).
 
-move_ship(Ships, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
+move_ship_if_valid(Board, Ships, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
   get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
+  is_move_valid(Board, ShipPosition, Direction, NumTiles),
+  move_ship(Ships, ShipPosition, Direction, NumTiles, NewShips).
+
+move_ship(Ships, ShipPosition, Direction, NumTiles, NewShips):-
   update_position(ShipPosition, Direction, NumTiles, NewShipPosition),
   list_get_nth(Ships, PlayerNo, PlayerShips),
   list_replace_nth(PlayerShips, ShipNo, NewShipPosition, NewPlayerShips),
@@ -79,6 +83,8 @@ move_ship(Ships, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
 is_direction_valid(Board, Position, Direction):-
     is_move_valid(Board, Position, Direction, 1, 2).
 
+is_move_valid(Board, Position, Direction, NumTiles):-
+  is_move_valid(Board, Position, Direction, NumTiles, NumTiles).
 is_move_valid(Board, Position, Direction, 1, TotalNumTiles):-
   update_position(Position, Direction, 1, NewPosition),
   get_tile_in_position(Board, NewPosition, Tile),
