@@ -10,7 +10,7 @@ create_board(Board):-
   [null, space, system1, system3, redNebula, wormhole, system0, system1, system1, null, null],
   [space, space, space, system1, blueNebula, system0, system2, null, null, null, null]].
 
-create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
+create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, RemainingStations, RemainingColonies):-
   Ships = [
   [[0,1], [1,1], [1,0]],
   [[2,7], [3,7], [2,8]]
@@ -24,11 +24,14 @@ create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
   []
   ],
   NumPlayers = 2,
-  NumShipsPerPlayer = 3.
+  NumShipsPerPlayer = 3,
+  RemainingStations = [4,4],
+  RemainingColonies = [16,16].
 
-initialize(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
+
+initialize(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, RemainingStations, RemainingColonies):-
   create_board(Board),
-  create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer).
+  create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, RemainingStations, RemainingColonies).
 
 get_piece_position(PieceList, PlayerNo, PieceNo, PiecePosition):-
   list_get_xy(PieceList, PlayerNo, PieceNo, PiecePosition).
@@ -136,3 +139,6 @@ update_position([X,Y], southwest, NumTiles, NewPosition):-
 update_position([X,Y], west, NumTiles, NewPosition):-
   NewX is X - NumTiles,
   NewPosition = [NewX, Y].
+
+%places a trade station on the player current position
+place_trade_station(PlayerNo, ShipNo, Ships, Position, RemaningStations):-

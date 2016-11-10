@@ -23,8 +23,8 @@ select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShips
   select_ship_direction(Direction),
   display_ship_num_tiles_info,
   select_ship_num_tiles(NumTiles),
-  move_ship_if_valid(Board, Ships, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips);
-  %select_action()
+  move_ship_if_valid(Board, Ships, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips),
+  select_action();
   write('The ship cannot move in the selected way.'),
   notrace,
   select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips).
@@ -298,3 +298,12 @@ print_element_second_line(Element, Position, Ships, TradeStations, Colonies):-
   write(NewColonyNo),
   write(' ');
   write('|       ').
+
+select_action(Action, Player, RemainingStations, RemainingColonies):-
+  read(SelectedAction), get_char(_),
+  integer(SelectedAction),
+  SelectedAction =< 2,
+  SelectedAction > 0,
+  Action is SelectedAction - 1;
+  write('Invalid action. Try again.'), nl,
+  fail.
