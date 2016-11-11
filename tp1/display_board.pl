@@ -6,14 +6,13 @@ start:-
   play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer).
 
 play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
-  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, 0, NewShips, NewTradeStations, NewColonies).
-
-play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, NewTradeStations, NewColonies):-
+  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, 0).
+play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
   display_board(Board, Ships, TradeStations, Colonies),
   select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips),
-  select_ship_action(NewShips, PlayerNo, ShipNo, TradeStations, Colonies, NewStations, NewColonies),
+  select_ship_action(NewShips, PlayerNo, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
   next_player(NumPlayers, CurrentPlayer, NextPlayer),
-  play(Board, NewShips, NewTradeStations, NewColonies, NumPlayers, NumShipsPerPlayer, NextPlayer, AnotherShips, AnotherTradeStations, AnotherColonies).
+  play(Board, NewShips, NewTradeStations, NewColonies, NumPlayers, NumShipsPerPlayer, NextPlayer).
 
 select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips):-
   display_player_info(CurrentPlayer, NumShipsPerPlayer),
@@ -91,7 +90,6 @@ display_board(Board, Ships, TradeStations, Colonies):-
     display_board(Board, Ships, TradeStations, Colonies, 0, 0).
 display_board([Line], Ships, TradeStations, Colonies, Offset, Y):-
   display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset).
-  %display_last_line(Line, [0, Y], Offset).
 display_board([Line | Rest], Ships, TradeStations, Colonies, Offset, Y):-
   display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset),
   negate(Offset, NextOffset),
@@ -110,7 +108,6 @@ display_last_line(Line, [X, Y], Offset):-
 
 print_first_row([]).
 print_first_row([null | Rest]):-
-  %write('         '),
   print_first_row(Rest).
 print_first_row([space | Rest]):-
   write('        '),
@@ -121,7 +118,6 @@ print_first_row([Element | Rest]):-
 
 print_second_row([]).
 print_second_row([null | Rest]):-
-  %write('         '),
   print_second_row(Rest).
 print_second_row([space | Rest]):-
   write('        '),
@@ -188,7 +184,6 @@ space(Count):-
 % WRITE ELEMENTS
 
 print_element_first_line(null).
-  %write('         ').
 
 print_element_first_line(space):-
   write('        ').
@@ -225,6 +220,7 @@ print_element_second_line(null, Position, Ships, TradeStations, Colonies).
 print_element_second_line(space, Position, Ships, TradeStations, Colonies):-
   write('        ').
 print_element_second_line(Element, Position, Ships, TradeStations, Colonies):-
+  %write(TradeStations), nl, write(Colonies),
   get_player_piece_in_position(Ships, Position, PlayerNo, ShipNo),
   NewPlayerNo is PlayerNo + 1,
   NewShipNo is ShipNo + 1,
@@ -251,24 +247,26 @@ print_element_second_line(Element, Position, Ships, TradeStations, Colonies):-
   write(' ');
   write('|       ').
 
-select_ship_action(Ships, PlayerNo, ShipNo,TradeStations, Colonies,  RemainingColonies, RemainingStations) :-
+select_ship_action(Ships, PlayerNo, ShipNo,TradeStations, Colonies,  NewTradeStations, NewColonies) :-
   display_action_info,
   select_action(Action),
-  valid_action(Action, PlayerNo, RemainingColonies, RemainingStations),!,
+  valid_action(Action, PlayerNo, TradeStations, Colonies),!,
   perform_action(Ships, PlayerNo, ShipNo, Action, TradeStations, Colonies, NewTradeStations, NewColonies).
 
-select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  RemainingColonies, RemainingStations) :-
-  select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  RemainingColonies, RemainingStations).
-
+select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  NewTradeStations, NewColonies) :-
+  select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  NewTradeStations, NewColonies).
 
 select_action(Action):-
-  read(SelectedAction), get_char(_),
+  read(SelectedAction),
   integer(SelectedAction),
   SelectedAction =< 2,
   SelectedAction > 0,
-  Action is SelectedAction - 1;
+  convert_number_to_action(SelectedAction, Action);
   write('Invalid action. Try again.'), nl,
   fail.
+
+convert_number_to_action(1, tradeStation).
+convert_number_to_action(2, colony).
 
 display_action_info:-
   write('Choose action: '),nl,write('1 - Place a trade station.'), nl,write('2 - Place a colony'),nl.

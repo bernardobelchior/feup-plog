@@ -150,10 +150,10 @@ update_position([X,Y], west, NumTiles, NewPosition):-
   NewPosition = [NewX, Y].
 
 valid_action(Action, Player, TradeStations, Colonies) :-
-    Action = 0, player_has_colonies(Player, Colonies),!.
+    Action = colony, player_has_colonies(Player, Colonies),!.
 
 valid_action(Action, Player, TradeStations, Colonies) :-
-    Action = 1, player_has_trade_stations(Player, TradeStations),!.
+    Action = tradeStation, player_has_trade_stations(Player, TradeStations),!.
 
 valid_action(Action, Player, TradeStations, Colonies) :-
     write("Player has no buildings of requested type"), fail.
@@ -161,8 +161,7 @@ valid_action(Action, Player, TradeStations, Colonies) :-
 player_has_trade_stations(Player, TradeStations) :-
     list_get_nth(TradeStations, Player, PlayerTradeStations),
     list_length(PlayerTradeStations, NumTradeStations),
-    NumTradeStations < 16.
-
+    NumTradeStations < 4.
 
 player_has_colonies(Player,Colonies) :-
     list_get_nth(Colonies, Player, PlayerColonies),
@@ -170,12 +169,14 @@ player_has_colonies(Player,Colonies) :-
     NumColonies < 16.
 
 perform_action(Ships, PlayerNo, ShipNo, Action, TradeStations, Colonies, NewTradeStations, NewColonies):-
-    Action = 0, get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
-    place_trade_station(PlayerNo, ShipPosition, TradeStations, NewTradeStations).
+    Action = tradeStation, get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
+    place_trade_station(PlayerNo, ShipPosition, TradeStations, NewTradeStations),
+    NewColonies = Colonies.
 
 perform_action(Ships, PlayerNo, ShipNo, Action, TradeStations, Colonies, NewTradeStations, NewColonies):-
-    Action = 1, get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
-    place_colony(PlayerNo, ShipPosition, Colonies, NewColonies).
+    Action = colony, get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
+    place_colony(PlayerNo, ShipPosition, Colonies, NewColonies),
+    NewTradeStations = TradeStations.
 
 place_trade_station(PlayerNo, ShipPosition, TradeStations, NewTradeStations):-
     list_get_nth(TradeStations, PlayerNo, PlayerTradeStations),
