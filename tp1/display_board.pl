@@ -9,23 +9,33 @@ play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
   play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, 0).
 play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
   display_board(Board, Ships, TradeStations, Colonies),
-  select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips),
-  select_ship_action(NewShips, PlayerNo, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
-  next_player(NumPlayers, CurrentPlayer, NextPlayer),
-  play(Board, NewShips, NewTradeStations, NewColonies, NumPlayers, NumShipsPerPlayer, NextPlayer).
+  select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
+  display_board(Board, NewShips, TradeStations, Colonies),
+  select_ship_action(NewShips, CurrentPlayer, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
+  check_game_state(Board, NewShips, NewTradeStations, NewColonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
 
-select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips):-
+check_game_state(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
+  is_game_over(Board, Ships, TradeStations, Colonies), %add check to see if no more trade statiosn and colonies
+  game_over(Board, Ships, TradeStations, Colonies);
+  next_player(NumPlayers, CurrentPlayer, NextPlayer),
+  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NextPlayer).
+
+game_over(_Board, _Ships, _TradeStations, _Colonies):-
+  write('Fim do jogo'), nl.
+
+select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo):-
   display_player_info(CurrentPlayer, NumShipsPerPlayer),
   display_ship_selection_menu(NumShipsPerPlayer),
-  select_ship(Ships, CurrentPlayer, NumShipsPerPlayer, ShipNo),
+  select_ship(NumShipsPerPlayer, ShipNo),
   display_ship_direction_info(ShipNo),
   select_ship_direction(Direction),
   display_ship_num_tiles_info,
   select_ship_num_tiles(NumTiles),
-  move_ship_if_valid(Board, Ships, TradeStations, Colonies, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips);
+  move_ship_if_valid(Board, Ships, TradeStations, Colonies, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips),
+  SelectedShipNo = ShipNo;
   display_board(Board, Ships, TradeStations, Colonies),
   write('Invalid movement. Try again.'), nl,
-  select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips).
+  select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo).
 
 display_ship_num_tiles_info:-
   write('How many tiles would you like to move in the chosen direction?'), nl.
@@ -70,7 +80,7 @@ display_player_info(PlayerNo, NumShipsPerPlayer):-
   write('Select a ship to move, between 1 and '),
   write(NumShipsPerPlayer), write(':'), nl.
 
-select_ship(Ships, CurrentPlayer, NumShipsPerPlayer, ShipNo):-
+select_ship(NumShipsPerPlayer, ShipNo):-
   read(ChosenShip),
   integer(ChosenShip),
   ChosenShip =< NumShipsPerPlayer,
@@ -97,14 +107,14 @@ display_board([Line | Rest], Ships, TradeStations, Colonies, Offset, Y):-
   display_board(Rest, Ships, TradeStations, Colonies, NextOffset, NextY).
 
 display_line([Element | Rest], [X, Y], Ships, TradeStations, Colonies, Offset):-
-  print_offset(Offset, Y), print_first_row([Element | Rest]), nl,
-  print_offset(Offset, Y), print_second_row([Element | Rest]), nl,
-  print_offset(Offset, Y), print_third_row([Element | Rest], [X,Y]), nl,
-  print_offset(Offset, Y), print_fourth_row([Element | Rest], [X,Y], Ships, TradeStations, Colonies), nl.
+  print_offset(Offset), print_first_row([Element | Rest]), nl,
+  print_offset(Offset), print_second_row([Element | Rest]), nl,
+  print_offset(Offset), print_third_row([Element | Rest], [X,Y]), nl,
+  print_offset(Offset), print_fourth_row([Element | Rest], [X,Y], Ships, TradeStations, Colonies), nl.
 
-display_last_line(Line, [X, Y], Offset):-
-  print_offset(Offset, Y), print_first_row([Element | Rest]), nl,
-  print_offset(Offset, Y), print_second_row([Element | Rest]), nl.
+display_last_line(_Line, _Position, Offset):-
+  print_offset(Offset), print_first_row([Element | Rest]), nl,
+  print_offset(Offset), print_second_row([Element | Rest]), nl.
 
 print_first_row([]).
 print_first_row([null | Rest]):-
@@ -112,7 +122,7 @@ print_first_row([null | Rest]):-
 print_first_row([space | Rest]):-
   write('        '),
   print_first_row(Rest).
-print_first_row([Element | Rest]):-
+print_first_row([_Element | Rest]):-
   print_triangle_top,
   print_first_row(Rest).
 
@@ -122,17 +132,17 @@ print_second_row([null | Rest]):-
 print_second_row([space | Rest]):-
   write('        '),
   print_second_row(Rest).
-print_second_row([Element | Rest]):-
+print_second_row([_Element | Rest]):-
   print_triangle_bottom,
   print_second_row(Rest).
 
-print_third_row([], [X, Y]).
+print_third_row([], _Position).
 print_third_row([Element | Rest], [X,Y]):-
   print_element_first_line(Element),
   NextX is X + 1,
   print_third_row(Rest, [NextX, Y]).
 
-print_fourth_row([], [X, Y], Ships, TradeStations, Colonies).
+print_fourth_row([], _Position, _Ships, _TradeStations, _Colonies).
 print_fourth_row([Element | Rest], [X, Y], Ships, TradeStations, Colonies):-
   print_element_second_line(Element, [X,Y], Ships, TradeStations, Colonies),
   NextX is X + 1,
@@ -142,7 +152,7 @@ print_fifth_row([]).
 print_fifth_row([null | Rest]):-
   write('         '),
   print_fifth_row(Rest).
-print_fifth_row([Element | Rest]):-
+print_fifth_row([_Element | Rest]):-
   print_triangle_top,
   print_fifth_row(Rest).
 
@@ -150,12 +160,12 @@ print_sixth_row([]).
   print_sixth_row([null | Rest]):-
   write('         '),
   print_sixth_row(Rest).
-print_sixth_row([Element | Rest]):-
+print_sixth_row([_Element | Rest]):-
   print_triangle_bottom,
   print_sixth_row(Rest).
 
-print_offset(0, Y).
-print_offset(1, Y):-
+print_offset(0).
+print_offset(1):-
   write('    ').
 
 print_triangle_top:-
@@ -216,11 +226,11 @@ print_element_first_line(redNebula):-
   write('|~~Red~~').
 
 
-print_element_second_line(null, Position, Ships, TradeStations, Colonies).
-print_element_second_line(space, Position, Ships, TradeStations, Colonies):-
+print_element_second_line(null, _Position, _Ships, _TradeStations, _Colonies).
+print_element_second_line(space, _Position, _Ships, _TradeStations, _Colonies):-
   write('        ').
-print_element_second_line(Element, Position, Ships, TradeStations, Colonies):-
-  %write(TradeStations), nl, write(Colonies),
+
+print_element_second_line(_Element, Position, Ships, TradeStations, Colonies):-
   get_player_piece_in_position(Ships, Position, PlayerNo, ShipNo),
   NewPlayerNo is PlayerNo + 1,
   NewShipNo is ShipNo + 1,

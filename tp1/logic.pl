@@ -36,14 +36,14 @@ get_piece_position(PieceList, PlayerNo, PieceNo, PiecePosition):-
 
 next_player(NumPlayers, CurrentPlayer, NextPlayer):-
   NextPlayerTmp is CurrentPlayer + 1,
-  CurrentPlayer < NumPlayers,
+  NextPlayerTmp < NumPlayers,
   NextPlayer = NextPlayerTmp;
   NextPlayer = 0.
 
 %Not
 negate(0, Result):-
   Result is 1.
-negate(A, Result):-
+negate(_A, Result):-
   Result is 0.
 
 %Checks if a position is equal.
@@ -87,7 +87,7 @@ is_direction_valid(Board, Ships, TradeStations, Colonies, Position, Direction):-
 
 %is_move_valid(Board, Position, Direction, NumTiles):-
   %is_move_valid(Board, Position, Direction, NumTiles, NumTiles).
-is_move_valid(Board, Ships, TradeStations, Colonies, Position, Direction, 0, TotalNumTiles).
+is_move_valid(_Board, _Ships, _TradeStations, _Colonies, _Position, _Direction, 0, _TotalNumTiles).
 is_move_valid(Board, Ships, TradeStations, Colonies, Position, Direction, NumTiles, TotalNumTiles):-
   update_position(Position, Direction, 1, NewPosition),
   get_tile_in_position(Board, NewPosition, Tile), !, % Cut needed in order to prevent backtracking
@@ -110,15 +110,33 @@ is_tile_passable(blueNebula).
 %is_tile_passable(wormhole, Position, Direction, TotalNumTiles):-
   %TotalNumTiles is 1,
 
-is_tile_unoccupied([], Position).
+is_tile_unoccupied([], _Position).
 is_tile_unoccupied([PlayerPieces | OtherPlayersPieces], Position):-
   position_has_piece(PlayerPieces, Position), !, fail;
   is_tile_unoccupied(OtherPlayersPieces, Position).
 
-position_has_piece([], Position):- fail.
+position_has_piece([], _Position):- fail.
 position_has_piece([Piece | OtherPieces], Position):-
   equal_position(Piece, Position);
   position_has_piece(OtherPieces, Position).
+
+is_ship_movable(Board, Ships, TradeStations, Colonies, Ship):-
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, northwest),
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, northeast),
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, east),
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, southeast),
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, southwest),
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, west).
+
+are_player_ships_movable(_Board, _Ships, _TradeStations, _Colonies, []).
+are_player_ships_movable(Board, Ships, TradeStations, Colonies, [Ship | OtherShips]):-
+  is_ship_movable(Board, Ships, TradeStations, Colonies, Ship),
+  are_player_ships_movable(Board, Ships, TradeStations, Colonies, OtherShips).
+
+is_game_over(_Board, [], _TradeStations, _Colonies).
+is_game_over(Board, [PlayerShips | OtherShips], TradeStations, Colonies):-
+  are_player_ships_movable(Board, [PlayerShips | OtherShips], TradeStations, Colonies, PlayerShips),
+  is_game_over(Board, OtherShips, TradeStations, Colonies, TradeStations, Colonies).
 
 /*Direction
 * Northwest - x   y--
@@ -149,22 +167,22 @@ update_position([X,Y], west, NumTiles, NewPosition):-
   NewX is X - NumTiles,
   NewPosition = [NewX, Y].
 
-valid_action(Action, Player, TradeStations, Colonies) :-
-    Action = colony, player_has_colonies(Player, Colonies),!.
+valid_action(colony, Player, _TradeStations, Colonies) :-
+    player_has_colonies(Player, Colonies),!.
 
-valid_action(Action, Player, TradeStations, Colonies) :-
-    Action = tradeStation, player_has_trade_stations(Player, TradeStations),!.
+valid_action(tradeStation, Player, TradeStations, _Colonies) :-
+    player_has_trade_stations(Player, TradeStations),!.
 
-valid_action(Action, Player, TradeStations, Colonies) :-
-    write("Player has no buildings of requested type"), fail.
+valid_action(_Action, _Player, _TradeStations, _Colonies) :-
+    write('Player has no buildings of requested type'), fail.
 
 player_has_trade_stations(Player, TradeStations) :-
-    list_get_nth(TradeStations, Player, PlayerTradeStations),
+    list_get_nth(TradeStations, Player, PlayerTradeStations), !,
     list_length(PlayerTradeStations, NumTradeStations),
     NumTradeStations < 4.
 
 player_has_colonies(Player,Colonies) :-
-    list_get_nth(Colonies, Player, PlayerColonies),
+    list_get_nth(Colonies, Player, PlayerColonies), !,
     list_length(PlayerColonies, NumColonies),
     NumColonies < 16.
 
@@ -180,10 +198,12 @@ perform_action(Ships, PlayerNo, ShipNo, Action, TradeStations, Colonies, NewTrad
 
 place_trade_station(PlayerNo, ShipPosition, TradeStations, NewTradeStations):-
     list_get_nth(TradeStations, PlayerNo, PlayerTradeStations),
-    list_append(PlayerTradeStations, ShipPosition, NewPlayerTradeStations),
+    NewShipPosition = [ShipPosition],
+    list_append(PlayerTradeStations, NewShipPosition, NewPlayerTradeStations),
     list_replace_nth(TradeStations,PlayerNo, NewPlayerTradeStations, NewTradeStations).
 
 place_colony(PlayerNo,ShipPosition, Colonies, NewColonies) :-
     list_get_nth(Colonies, PlayerNo, PlayerColonies),
-    list_append(PlayerColonies, ShipPosition, NewPlayerColonies),
+    NewShipPosition = [ShipPosition],
+    list_append(PlayerColonies, NewShipPosition, NewPlayerColonies),
     list_replace_nth(Colonies,PlayerNo, NewPlayerColonies, NewColonies).
