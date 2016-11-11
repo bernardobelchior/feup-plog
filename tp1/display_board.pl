@@ -3,16 +3,17 @@
 
 start:-
   initialize(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer),
-  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer).
+  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NumStations, NumColonies).
   %display_first_line_top(Board, [-4, 0], Ships, 1),
 
-play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
-  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, 0, NewShips).
-play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips):-
+play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NumStations, NumColonies):-
+  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NumStations, NumColonies, 0, NewShips, NewTradeStations, NewColonies, NewNumStations, NewNumColonies).
+play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NumStations, NumColonies, CurrentPlayer, NewShips, NewTradeStations, NewColonies, NewNumStations, NewNumColonies):-
   display_board(Board, Ships, TradeStations, Colonies),
-  select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips),
+  select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, NewTradeStations, NewColonies),
+  select_ship_action(NewShips, PlayerNo, ShipNo, TradeStations, Colonies, NumStations, NumColonies, NewStations, NewColonies),
   next_player(NumPlayers, CurrentPlayer, NextPlayer),
-  play(Board, NewShips, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NextPlayer, AnotherShips).
+  play(Board, NewShips, NewTradeStations, NewColonies, NumPlayers, NumShipsPerPlayer, NextPlayer, AnotherShips, AnotherTradeStations, AnotherColonies).
 
 select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips):-
   trace,
@@ -23,8 +24,7 @@ select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShips
   select_ship_direction(Direction),
   display_ship_num_tiles_info,
   select_ship_num_tiles(NumTiles),
-  move_ship_if_valid(Board, Ships, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips),
-  select_action();
+  move_ship_if_valid(Board, Ships, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips),!;
   write('The ship cannot move in the selected way.'),
   notrace,
   select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips).
@@ -299,7 +299,17 @@ print_element_second_line(Element, Position, Ships, TradeStations, Colonies):-
   write(' ');
   write('|       ').
 
-select_action(Action, Player, RemainingStations, RemainingColonies):-
+select_ship_action(Ships, PlayerNo, ShipNo,TradeStations, Colonies,  RemainingColonies, RemainingStations) :-
+  display_action_info,
+  select_action(Action),
+  valid_action(Action, PlayerNo, RemainingColonies, RemainingStations),!,
+  perform_action(Ships, PlayerNo, ShipNo, Action, TradeStations, Colonies, RemainingColonies, RemainingStations).
+
+select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  RemainingColonies, RemainingStations) :-
+  select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  RemainingColonies, RemainingStations).
+
+
+select_action(Action):-
   read(SelectedAction), get_char(_),
   integer(SelectedAction),
   SelectedAction =< 2,
@@ -307,3 +317,6 @@ select_action(Action, Player, RemainingStations, RemainingColonies):-
   Action is SelectedAction - 1;
   write('Invalid action. Try again.'), nl,
   fail.
+
+display_action_info:-
+  write('Choose action: '),nl,write('1 - Place a trade station.'), nl,write('2 - Place a colony'),nl.
