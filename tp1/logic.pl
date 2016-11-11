@@ -11,7 +11,7 @@ create_board(Board):-
   [space, system1, system3, redNebula, wormhole, system0, system1, system1, null, null, null],
   [space, space, space, system1, blueNebula, system0, system2, null, null, null, null]].
 
-create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
+create_players(Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer):-
   Ships = [
   [[4,2], [5,2], [5,1]],
   [[6,8], [7,8], [5,9]]
@@ -23,6 +23,9 @@ create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
   Colonies = [
   [],
   []
+  ],
+  Wormholes = [
+  [3,8],[4,3],[8,4]
   ],
   NumPlayers = 2,
   NumShipsPerPlayer = 3.
