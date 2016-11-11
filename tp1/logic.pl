@@ -1,19 +1,20 @@
 create_board(Board):-
   Board = [
+  [null, null, null, null, null, null, null, null, null, null, null],
   [null, null, null, null, system0, system3, greenNebula, system2, null, null, null],
-  [null, null, null, null, blueNebula, system2, system1, blackHole, system1, system1, system1],
+  [null, null, null, blueNebula, system2, system1, blackHole, system1, system1, system1, null],
   [null, null, null, system2, system3, system0, system2, system2, wormhole, system3, null],
-  [null, null, null, system3, wormhole, system1, redNebula, system1, blueNebula, system1, null],
+  [null, null, system3, wormhole, system1, redNebula, system1, blueNebula, system1, null, null],
   [null, null, system0, system2, system3, system0, system0, system1, system2, null, null],
-  [null, null, space, redNebula, system3, greenNebula, system0, system1, blackHole, system1, null],
+  [null, space, redNebula, system3, greenNebula, system0, system1, blackHole, system1, null, null],
   [null, system3, blackHole, greenNebula, system3, system2, system1, system1, null, null, null],
-  [null, space, system1, system3, redNebula, wormhole, system0, system1, system1, null, null],
+  [space, system1, system3, redNebula, wormhole, system0, system1, system1, null, null, null],
   [space, space, space, system1, blueNebula, system0, system2, null, null, null, null]].
 
 create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
   Ships = [
-  [[0,1], [1,1], [1,0]],
-  [[2,7], [3,7], [2,8]]
+  [[4,2], [5,2], [5,1]],
+  [[6,8], [7,8], [5,9]]
   ],
   TradeStations = [
   [],
@@ -31,11 +32,12 @@ initialize(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer)
   create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer).
 
 get_piece_position(PieceList, PlayerNo, PieceNo, PiecePosition):-
-  list_get_xy(PieceList, PlayerNo, PieceNo, PiecePosition).
+  list_get_xy(PieceList, PieceNo, PlayerNo, PiecePosition).
 
 next_player(NumPlayers, CurrentPlayer, NextPlayer):-
+  NextPlayerTmp is CurrentPlayer + 1,
   CurrentPlayer < NumPlayers,
-  NextPlayer is CurrentPlayer + 1;
+  NextPlayer = NextPlayerTmp;
   NextPlayer = 0.
 
 %Not
@@ -70,10 +72,10 @@ valid_direction(X,Y) :- (X \= 0; Y\=0), ((X \= 0, Y = 0); (X = 0, Y \= 0); (X = 
 
 move_ship_if_valid(Board, Ships, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
   get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
-  is_move_valid(Board, ShipPosition, Direction, NumTiles),
-  move_ship(Ships, ShipPosition, Direction, NumTiles, NewShips).
+  is_move_valid(Board, ShipPosition, Direction, NumTiles, NumTiles),
+  move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips).
 
-move_ship(Ships, ShipPosition, Direction, NumTiles, NewShips):-
+move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
   update_position(ShipPosition, Direction, NumTiles, NewShipPosition),
   list_get_nth(Ships, PlayerNo, PlayerShips),
   list_replace_nth(PlayerShips, ShipNo, NewShipPosition, NewPlayerShips),
@@ -81,20 +83,17 @@ move_ship(Ships, ShipPosition, Direction, NumTiles, NewShips):-
 
 % TotalNumTiles must be bigger than one in order to allow checking for wormholes
 is_direction_valid(Board, Position, Direction):-
-    is_move_valid(Board, Position, Direction, 1, 2).
+  is_move_valid(Board, Position, Direction, 1, 2).
 
-is_move_valid(Board, Position, Direction, NumTiles):-
-  is_move_valid(Board, Position, Direction, NumTiles, NumTiles).
-is_move_valid(Board, Position, Direction, 1, TotalNumTiles):-
-  update_position(Position, Direction, 1, NewPosition),
-  get_tile_in_position(Board, NewPosition, Tile),
-  is_tile_passable(Tile).
+%is_move_valid(Board, Position, Direction, NumTiles):-
+  %is_move_valid(Board, Position, Direction, NumTiles, NumTiles).
+is_move_valid(Board, Position, Direction, 0, TotalNumTiles).
 is_move_valid(Board, Position, Direction, NumTiles, TotalNumTiles):-
   update_position(Position, Direction, 1, NewPosition),
   get_tile_in_position(Board, NewPosition, Tile),
   is_tile_passable(Tile),
   NewNumTiles is NumTiles - 1,
-  is_move_valid(Board, NewPosition, Direction, -NewNumTiles, TotalNumTiles).
+  is_move_valid(Board, NewPosition, Direction, NewNumTiles, TotalNumTiles).
 
 is_tile_passable(system0).
 is_tile_passable(system1).
