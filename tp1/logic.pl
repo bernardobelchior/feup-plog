@@ -43,7 +43,7 @@ next_player(NumPlayers, CurrentPlayer, NextPlayer):-
 %Not
 negate(0, Result):-
   Result is 1.
-negate(A, Result):-
+negate(_A, Result):-
   Result is 0.
 
 %Checks if a position is equal.
@@ -87,7 +87,7 @@ is_direction_valid(Board, Ships, TradeStations, Colonies, Position, Direction):-
 
 %is_move_valid(Board, Position, Direction, NumTiles):-
   %is_move_valid(Board, Position, Direction, NumTiles, NumTiles).
-is_move_valid(Board, Ships, TradeStations, Colonies, Position, Direction, 0, TotalNumTiles).
+is_move_valid(_Board, _Ships, _TradeStations, _Colonies, _Position, _Direction, 0, _TotalNumTiles).
 is_move_valid(Board, Ships, TradeStations, Colonies, Position, Direction, NumTiles, TotalNumTiles):-
   update_position(Position, Direction, 1, NewPosition),
   get_tile_in_position(Board, NewPosition, Tile), !, % Cut needed in order to prevent backtracking
@@ -110,15 +110,33 @@ is_tile_passable(blueNebula).
 %is_tile_passable(wormhole, Position, Direction, TotalNumTiles):-
   %TotalNumTiles is 1,
 
-is_tile_unoccupied([], Position).
+is_tile_unoccupied([], _Position).
 is_tile_unoccupied([PlayerPieces | OtherPlayersPieces], Position):-
   position_has_piece(PlayerPieces, Position), !, fail;
   is_tile_unoccupied(OtherPlayersPieces, Position).
 
-position_has_piece([], Position):- fail.
+position_has_piece([], _Position):- fail.
 position_has_piece([Piece | OtherPieces], Position):-
   equal_position(Piece, Position);
   position_has_piece(OtherPieces, Position).
+
+is_ship_movable(Board, Ships, TradeStations, Colonies, Ship):-
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, northwest),
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, northeast),
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, east),
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, southeast),
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, southwest),
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, west).
+
+are_player_ships_movable(_Board, _Ships, _TradeStations, _Colonies, []).
+are_player_ships_movable(Board, Ships, TradeStations, Colonies, [Ship | OtherShips]):-
+  is_ship_movable(Board, Ships, TradeStations, Colonies, Ship),
+  are_player_ships_movable(Board, Ships, TradeStations, Colonies, OtherShips).
+
+is_game_over(_Board, [], _TradeStations, _Colonies).
+is_game_over(Board, [PlayerShips | OtherShips], TradeStations, Colonies):-
+  are_player_ships_movable(Board, [PlayerShips | OtherShips], TradeStations, Colonies, PlayerShips),
+  is_game_over(Board, OtherShips, TradeStations, Colonies, TradeStations, Colonies).
 
 /*Direction
 * Northwest - x   y--
