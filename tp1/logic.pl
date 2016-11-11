@@ -71,7 +71,7 @@ get_tile_in_position(Board, [X , Y], Tile):-
 valid_direction(X,Y) :- (X \= 0; Y\=0), ((X \= 0, Y = 0); (X = 0, Y \= 0); (X = -Y)).
 
 move_ship_if_valid(Board, Ships, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
-  get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
+  get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition), !, %Needed in order to prevent backtracking
   is_move_valid(Board, ShipPosition, Direction, NumTiles, NumTiles),
   move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips).
 
@@ -90,7 +90,7 @@ is_direction_valid(Board, Position, Direction):-
 is_move_valid(Board, Position, Direction, 0, TotalNumTiles).
 is_move_valid(Board, Position, Direction, NumTiles, TotalNumTiles):-
   update_position(Position, Direction, 1, NewPosition),
-  get_tile_in_position(Board, NewPosition, Tile),
+  get_tile_in_position(Board, NewPosition, Tile), !, % Cut needed in order to prevent backtracking
   is_tile_passable(Tile),
   NewNumTiles is NumTiles - 1,
   is_move_valid(Board, NewPosition, Direction, NewNumTiles, TotalNumTiles).

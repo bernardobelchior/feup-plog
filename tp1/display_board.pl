@@ -4,25 +4,25 @@
 start:-
   initialize(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer),
   play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer).
-  %display_first_line_top(Board, [-4, 0], Ships, 1),
 
 play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
   play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, 0, NewShips).
 play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips):-
+  display_board(Board, Ships, TradeStations, Colonies),
   select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips),
   next_player(NumPlayers, CurrentPlayer, NextPlayer),
   play(Board, NewShips, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NextPlayer, AnotherShips).
 
 select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips):-
-  display_board(Board, Ships, TradeStations, Colonies),
   display_player_info(CurrentPlayer, NumShipsPerPlayer),
   display_ship_selection_menu(NumShipsPerPlayer),
   select_ship(Ships, CurrentPlayer, NumShipsPerPlayer, ShipNo),
   display_ship_direction_info(ShipNo),
   select_ship_direction(Direction),
   display_ship_num_tiles_info,
-  select_ship_num_tiles(NumTiles), 
+  select_ship_num_tiles(NumTiles),
   move_ship_if_valid(Board, Ships, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips);
+  display_board(Board, Ships, TradeStations, Colonies),
   write('Invalid movement. Try again.'),
   select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips).
 
@@ -78,7 +78,7 @@ select_ship(Ships, CurrentPlayer, NumShipsPerPlayer, ShipNo):-
 
 display_ship_selection_menu(NumShipsPerPlayer):-
   display_ship_selection_menu(NumShipsPerPlayer, 0).
-  display_ship_selection_menu(NumShipsPerPlayer, NumShipsPerPlayer).
+display_ship_selection_menu(NumShipsPerPlayer, NumShipsPerPlayer).
 display_ship_selection_menu(NumShipsPerPlayer, CurrentShip):-
   CurrentShip < NumShipsPerPlayer,
   NextShip is CurrentShip + 1,
@@ -88,8 +88,8 @@ display_ship_selection_menu(NumShipsPerPlayer, CurrentShip):-
 display_board(Board, Ships, TradeStations, Colonies):-
     display_board(Board, Ships, TradeStations, Colonies, 0, 0).
 display_board([Line], Ships, TradeStations, Colonies, Offset, Y):-
-  display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset),
-  display_last_line(Line, [X, Y], Offset).
+  display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset).
+  %display_last_line(Line, [0, Y], Offset).
 display_board([Line | Rest], Ships, TradeStations, Colonies, Offset, Y):-
   display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset),
   negate(Offset, NextOffset),
