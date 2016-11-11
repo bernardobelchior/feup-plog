@@ -4,7 +4,6 @@
 start:-
   initialize(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer),
   play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer).
-  %display_first_line_top(Board, [-4, 0], Ships, 1),
 
 play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
   play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, 0, NewShips).
@@ -15,7 +14,6 @@ play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, Curre
   play(Board, NewShips, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NextPlayer, AnotherShips).
 
 select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips):-
-  trace,
   display_player_info(CurrentPlayer, NumShipsPerPlayer),
   display_ship_selection_menu(NumShipsPerPlayer),
   select_ship(Ships, CurrentPlayer, NumShipsPerPlayer, ShipNo),
@@ -24,16 +22,15 @@ select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShips
   display_ship_num_tiles_info,
   select_ship_num_tiles(NumTiles),
   move_ship_if_valid(Board, Ships, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips);
-  %select_action()
-  write('The ship cannot move in the selected way.'),
-  notrace,
+  display_board(Board, Ships, TradeStations, Colonies),
+  write('Invalid movement. Try again.'),
   select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips).
 
 display_ship_num_tiles_info:-
   write('How many tiles would you like to move in the chosen direction?'), nl.
 
 select_ship_num_tiles(NumTiles):-
-  read(ReadNumTiles), get_char(_),
+  read(ReadNumTiles),
   integer(ReadNumTiles),
   ReadNumTiles > 0,
   NumTiles = ReadNumTiles. %check if valid
@@ -51,13 +48,11 @@ display_ship_direction_info(ShipNo):-
   write('Please choose one: ').
 
 select_ship_direction(Direction):-
-  read(ReadDirection), get_char(_),
+  read(ReadDirection),
   integer(ReadDirection),
   ReadDirection =< 6,
   ReadDirection > 0,
-  number_to_direction(ReadDirection, Direction);
-  write('Invalid direction.'), nl,
-  fail.
+  number_to_direction(ReadDirection, Direction).
 
 number_to_direction(1, northwest).
 number_to_direction(2, northeast).
@@ -75,29 +70,28 @@ display_player_info(PlayerNo, NumShipsPerPlayer):-
   write(NumShipsPerPlayer), write(':'), nl.
 
 select_ship(Ships, CurrentPlayer, NumShipsPerPlayer, ShipNo):-
-  read(ChosenShip), get_char(_),
+  read(ChosenShip),
   integer(ChosenShip),
   ChosenShip =< NumShipsPerPlayer,
   ChosenShip > 0,
-  ShipNo is ChosenShip - 1;
-  write('Invalid ship number. Try again.'), nl,
-  fail.
+  ShipNo is ChosenShip - 1.
 
 display_ship_selection_menu(NumShipsPerPlayer):-
-  display_ship_selection_menu(NumShipsPerPlayer, 1).
+  display_ship_selection_menu(NumShipsPerPlayer, 0).
+display_ship_selection_menu(NumShipsPerPlayer, NumShipsPerPlayer).
 display_ship_selection_menu(NumShipsPerPlayer, CurrentShip):-
-  CurrentShip > NumShipsPerPlayer;
-  write(CurrentShip), write(' - Ship '), write(CurrentShip), nl,
+  CurrentShip < NumShipsPerPlayer,
   NextShip is CurrentShip + 1,
+  write(NextShip), write(' - Ship '), write(NextShip), nl,
   display_ship_selection_menu(NumShipsPerPlayer, NextShip).
 
 display_board(Board, Ships, TradeStations, Colonies):-
-    display_board(Board, Ships, TradeStations, Colonies, 1, 0).
+    display_board(Board, Ships, TradeStations, Colonies, 0, 0).
 display_board([Line], Ships, TradeStations, Colonies, Offset, Y):-
-  display_line(Line, [-4, Y], Ships, TradeStations, Colonies, Offset),
-  display_last_line(Line, [X, Y], Offset).
+  display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset).
+  %display_last_line(Line, [0, Y], Offset).
 display_board([Line | Rest], Ships, TradeStations, Colonies, Offset, Y):-
-  display_line(Line, [-4, Y], Ships, TradeStations, Colonies, Offset),
+  display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset),
   negate(Offset, NextOffset),
   NextY is Y + 1,
   display_board(Rest, Ships, TradeStations, Colonies, NextOffset, NextY).
@@ -107,21 +101,7 @@ display_line([Element | Rest], [X, Y], Ships, TradeStations, Colonies, Offset):-
   print_offset(Offset, Y), print_second_row([Element | Rest]), nl,
   print_offset(Offset, Y), print_third_row([Element | Rest], [X,Y]), nl,
   print_offset(Offset, Y), print_fourth_row([Element | Rest], [X,Y], Ships, TradeStations, Colonies), nl.
-/*
-%First line
-display_first_line_top([FirstLine | Rest], [X, Y], Ships, Offset):-
-  print_offset(Offset, Y), print_first_row(FirstLine), nl,
-  print_offset(Offset, Y), print_second_row(FirstLine), nl.
 
-%Last Line
-display_in_between_line([SecondLine], [X, Y], Ships, Offset):-
-  print_offset(Offset, Y), print_first_row([Element | Rest]), nl,
-  print_offset(Offset, Y), print_second_row([Element | Rest]), nl.
-%Other Lines
-display_in_between_line([FirstLine, SecondLine | Rest], [X, Y], Ships, Offset):-
-  print_offset(Offset, Y), print_first_row([Element | Rest]), nl,
-  print_offset(Offset, Y), print_second_row([Element | Rest]), nl.
-*/
 display_last_line(Line, [X, Y], Offset):-
   print_offset(Offset, Y), print_first_row([Element | Rest]), nl,
   print_offset(Offset, Y), print_second_row([Element | Rest]), nl.
@@ -179,33 +159,6 @@ print_sixth_row([Element | Rest]):-
 print_offset(0, Y).
 print_offset(1, Y):-
   write('    ').
-
-/*is_last_visible_element_in_line([]).
-is_last_visible_element_in_line([Element | Rest]):-
-    is_last_visible_element_in_line(Rest),
-    is_not_visible_element(Rest).
-
-is_not_visible_element(space).
-is_not_visible_element(null).
-
-%
-is_visible_element(system0).
-is_visible_element(system1).
-is_visible_element(system2).
-is_visible_element(system3).
-is_visible_element(redNebula).
-is_visible_element(greenNebula).
-is_visible_element(blueNebula).
-is_visible_element(wormhole).
-is_visible_element(blackHole).*/
-
-
-%Debug
-test:-
-  initialize(Ships),
-  board(Board),
-  list_get_last_line(Board, LastLine),
-  write(LastLine).
 
 print_triangle_top:-
   print_triangle_left_top, write(' '),
@@ -267,11 +220,8 @@ print_element_first_line(redNebula):-
 
 
 print_element_second_line(null, Position, Ships, TradeStations, Colonies).
-  %write('         ').
-
 print_element_second_line(space, Position, Ships, TradeStations, Colonies):-
   write('        ').
-
 print_element_second_line(Element, Position, Ships, TradeStations, Colonies):-
   get_player_piece_in_position(Ships, Position, PlayerNo, ShipNo),
   NewPlayerNo is PlayerNo + 1,
