@@ -30,9 +30,9 @@ create_players(Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPe
   NumPlayers = 2,
   NumShipsPerPlayer = 3.
 
-initialize(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
+initialize(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer):-
   create_board(Board),
-  create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer).
+  create_players(Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer).
 
 get_piece_position(PieceList, PlayerNo, PieceNo, PiecePosition):-
   list_get_xy(PieceList, PieceNo, PlayerNo, PiecePosition).
