@@ -70,9 +70,9 @@ get_tile_in_position(Board, [X , Y], Tile):-
 %checks if a direction is valid, X and Y are the distances in X and Y that will be traveled
 valid_direction(X,Y) :- (X \= 0; Y\=0), ((X \= 0, Y = 0); (X = 0, Y \= 0); (X = -Y)).
 
-move_ship_if_valid(Board, Ships, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
+move_ship_if_valid(Board, Ships, TradeStations, Colonies, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
   get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition), !, %Needed in order to prevent backtracking
-  is_move_valid(Board, ShipPosition, Direction, NumTiles, NumTiles),
+  is_move_valid(Board, Ships, TradeStations, Colonies, ShipPosition, Direction, NumTiles, NumTiles),
   move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips).
 
 move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
@@ -82,18 +82,21 @@ move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips):
   list_replace_nth(Ships, PlayerNo, NewPlayerShips, NewShips).
 
 % TotalNumTiles must be bigger than one in order to allow checking for wormholes
-is_direction_valid(Board, Position, Direction):-
-  is_move_valid(Board, Position, Direction, 1, 2).
+is_direction_valid(Board, Ships, TradeStations, Colonies, Position, Direction):-
+  is_move_valid(Board, Ships, TradeStations, Colonies, Position, Direction, 1, 2).
 
 %is_move_valid(Board, Position, Direction, NumTiles):-
   %is_move_valid(Board, Position, Direction, NumTiles, NumTiles).
-is_move_valid(Board, Position, Direction, 0, TotalNumTiles).
-is_move_valid(Board, Position, Direction, NumTiles, TotalNumTiles):-
+is_move_valid(Board, Ships, TradeStations, Colonies, Position, Direction, 0, TotalNumTiles).
+is_move_valid(Board, Ships, TradeStations, Colonies, Position, Direction, NumTiles, TotalNumTiles):-
   update_position(Position, Direction, 1, NewPosition),
   get_tile_in_position(Board, NewPosition, Tile), !, % Cut needed in order to prevent backtracking
   is_tile_passable(Tile),
+  is_tile_unoccupied(Ships, NewPosition),
+  is_tile_unoccupied(TradeStations, NewPosition),
+  is_tile_unoccupied(Colonies, NewPosition),
   NewNumTiles is NumTiles - 1,
-  is_move_valid(Board, NewPosition, Direction, NewNumTiles, TotalNumTiles).
+  is_move_valid(Board, Ships, TradeStations, Colonies, NewPosition, Direction, NewNumTiles, TotalNumTiles).
 
 is_tile_passable(system0).
 is_tile_passable(system1).
@@ -106,6 +109,16 @@ is_tile_passable(blueNebula).
 % certain requirements
 %is_tile_passable(wormhole, Position, Direction, TotalNumTiles):-
   %TotalNumTiles is 1,
+
+is_tile_unoccupied([], Position).
+is_tile_unoccupied([PlayerPieces | OtherPlayersPieces], Position):-
+  position_has_piece(PlayerPieces, Position), !, fail;
+  is_tile_unoccupied(OtherPlayersPieces, Position).
+
+position_has_piece([], Position):- fail.
+position_has_piece([Piece | OtherPieces], Position):-
+  equal_position(Piece, Position);
+  position_has_piece(OtherPieces, Position).
 
 /*Direction
 * Northwest - x   y--

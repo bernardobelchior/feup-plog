@@ -21,9 +21,9 @@ select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShips
   select_ship_direction(Direction),
   display_ship_num_tiles_info,
   select_ship_num_tiles(NumTiles),
-  move_ship_if_valid(Board, Ships, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips);
+  move_ship_if_valid(Board, Ships, TradeStations, Colonies, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips);
   display_board(Board, Ships, TradeStations, Colonies),
-  write('Invalid movement. Try again.'),
+  write('Invalid movement. Try again.'), nl,
   select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips).
 
 display_ship_num_tiles_info:-
