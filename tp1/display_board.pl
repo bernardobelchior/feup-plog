@@ -40,7 +40,7 @@ select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayer
 
 do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips):-
     is_move_to_wormhole(ShipPosition, Direction, Wormholes, InWormhole).
-    %move_through_wormhole
+    move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole).
 
 do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips):-
   display_ship_num_tiles_info,
