@@ -99,7 +99,8 @@ display_ship_selection_menu(NumShipsPerPlayer, CurrentShip):-
 display_board(Board, Ships, TradeStations, Colonies):-
     display_board(Board, Ships, TradeStations, Colonies, 0, 0, 0).
 display_board([Line], Ships, TradeStations, Colonies, Offset, Y, WormholeNo):-
-  display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset, WormholeNo, _NewWormholeNo).
+  display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset, WormholeNo, _NewWormholeNo),
+  display_last_line(Line, [0, Y], Offset).
 display_board([Line | Rest], Ships, TradeStations, Colonies, Offset, Y, WormholeNo):-
   display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset, WormholeNo, NewWormholeNo),
   negate(Offset, NextOffset),
@@ -112,13 +113,33 @@ display_line([Element | Rest], [X, Y], Ships, TradeStations, Colonies, Offset, W
   print_offset(Offset),
   print_second_row([Element | Rest]), nl,
   print_offset(Offset),
-  print_third_row([Element | Rest], [X,Y]), nl,
+  print_third_row([Element | Rest]), nl,
   print_offset(Offset),
   print_fourth_row([Element | Rest], [X,Y], Ships, TradeStations, Colonies, WormholeNo, NewWormholeNo), nl.
 
-display_last_line(_Line, _Position, Offset):-
-  print_offset(Offset), print_first_row([Element | Rest]), nl,
-  print_offset(Offset), print_second_row([Element | Rest]), nl.
+display_last_line([Element | Rest], _Position, Offset):-
+  print_offset(Offset), print_last_line_first_row([Element | Rest]), nl,
+  print_offset(Offset), print_last_line_second_row([Element | Rest]), nl.
+
+print_last_line_first_row([]).
+print_last_line_first_row([null | Rest]):-
+  print_last_line_first_row(Rest).
+print_last_line_first_row([space | Rest]):-
+  write('        '),
+  print_last_line_first_row(Rest).
+print_last_line_first_row([_Element | Rest]):-
+  write(' '), print_triangle_right_top, print_triangle_left_top,
+  print_last_line_first_row(Rest).
+
+print_last_line_second_row([]).
+print_last_line_second_row([null | Rest]):-
+  print_last_line_second_row(Rest).
+print_last_line_second_row([space | Rest]):-
+  write('        '),
+  print_last_line_second_row(Rest).
+print_last_line_second_row([_Element | Rest]):-
+  write(' '), print_triangle_right_bottom, print_triangle_left_bottom,
+  print_last_line_second_row(Rest).
 
 print_first_row([]).
 print_first_row([null | Rest]):-
@@ -140,18 +161,21 @@ print_second_row([_Element | Rest]):-
   print_triangle_bottom,
   print_second_row(Rest).
 
-print_third_row([], _Position).
-print_third_row([Element | Rest], [X,Y]):-
+print_third_row([Element]):-
   print_element_first_line(Element),
-  NextX is X + 1,
-  print_third_row(Rest, [NextX, Y]).
+  print_final_hexagon(Element, null).
+print_third_row([Element, NextElement | Rest]):-
+  print_element_first_line(Element),
+  print_final_hexagon(Element, NextElement),
+  print_third_row([NextElement | Rest]).
 
-print_fourth_row([], _Position, _Ships, _TradeStations, _Colonies, WormholeNo, FinalWormholeNo):-
-  FinalWormholeNo = WormholeNo.
-print_fourth_row([Element | Rest], [X, Y], Ships, TradeStations, Colonies, WormholeNo, FinalWormholeNo):-
+print_fourth_row([Element], _Position, _Ships, _TradeStations, _Colonies, WormholeNo, WormholeNo):-
+  print_final_hexagon(Element, null).
+print_fourth_row([Element, NextElement | Rest], [X, Y], Ships, TradeStations, Colonies, WormholeNo, FinalWormholeNo):-
   print_element_second_line(Element, [X,Y], Ships, TradeStations, Colonies, WormholeNo, NewWormholeNo),
+  print_final_hexagon(Element, NextElement),
   NextX is X + 1,
-  print_fourth_row(Rest, [NextX, Y], Ships, TradeStations, Colonies, NewWormholeNo, FinalWormholeNo).
+  print_fourth_row([NextElement | Rest], [NextX, Y], Ships, TradeStations, Colonies, NewWormholeNo, FinalWormholeNo).
 
 
 print_fifth_row([]).
@@ -173,6 +197,14 @@ print_sixth_row([_Element | Rest]):-
 print_offset(0).
 print_offset(1):-
   write('    ').
+
+print_final_hexagon(null, _NextElement).
+print_final_hexagon(space, _NextElement).
+print_final_hexagon(_Element, null):-
+  write('|').
+print_final_hexagon(_Element, space):-
+  write('|').
+print_final_hexagon(_Element, _NextElement).
 
 print_triangle_top:-
   print_triangle_left_top, write(' '),
