@@ -73,7 +73,13 @@ get_tile_in_position(Board, [X , Y], Tile):-
 %checks if a direction is valid, X and Y are the distances in X and Y that will be traveled
 valid_direction(X,Y) :- (X \= 0; Y\=0), ((X \= 0, Y = 0); (X = 0, Y \= 0); (X = -Y)).
 
-move_ship_if_valid(Board, Ships, TradeStations, Colonies, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
+%is_move_to_wormhole(+ShipPosition, +Direction, +NumTiles, +Wormholes, -InWormhole)
+is_move_to_wormhole(ShipPosition, Direction, NumTiles, Wormholes, InWormhole) :-
+    NumTiles = 1,
+    update_position(ShipPosition, Direction, 1, NewPosition),
+    list_find(Wormholes, NewPosition, 0, InWormhole).
+
+move_ship_if_valid(Board, Ships, TradeStations, Colonies, Wormholes, PlayerNo, ShipNo, ShipPosition, Direction, NumTiles, NewShips):-
   get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition), !, %Needed in order to prevent backtracking
   is_move_valid(Board, Ships, TradeStations, Colonies, ShipPosition, Direction, NumTiles, NumTiles),
   move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips).
@@ -90,8 +96,8 @@ is_direction_valid(Board, Ships, TradeStations, Colonies, Position, Direction):-
 
 %is_move_valid(Board, Position, Direction, NumTiles):-
   %is_move_valid(Board, Position, Direction, NumTiles, NumTiles).
-is_move_valid(_Board, _Ships, _TradeStations, _Colonies, _Position, _Direction, 0, _TotalNumTiles).
-is_move_valid(Board, Ships, TradeStations, Colonies, Position, Direction, NumTiles, TotalNumTiles):-
+is_move_valid(_Board, _Ships, _TradeStations, _Colonies, _Wormholes, _Position, _Direction, 0, _TotalNumTiles).
+is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction, NumTiles, TotalNumTiles):-
   update_position(Position, Direction, 1, NewPosition),
   get_tile_in_position(Board, NewPosition, Tile), !, % Cut needed in order to prevent backtracking
   is_tile_passable(Tile),
@@ -108,10 +114,6 @@ is_tile_passable(system3).
 is_tile_passable(greenNebula).
 is_tile_passable(redNebula).
 is_tile_passable(blueNebula).
-% FIXME: Currently wormhole are impassable, but they are passable if they meet
-% certain requirements
-%is_tile_passable(wormhole, Position, Direction, TotalNumTiles):-
-  %TotalNumTiles is 1,
 
 is_tile_unoccupied([], _Position).
 is_tile_unoccupied([PlayerPieces | OtherPlayersPieces], Position):-

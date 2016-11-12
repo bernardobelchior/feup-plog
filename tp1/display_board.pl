@@ -32,11 +32,23 @@ select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayer
   select_ship_direction(Direction),
   display_ship_num_tiles_info,
   select_ship_num_tiles(NumTiles),
-  move_ship_if_valid(Board, Ships, TradeStations, Colonies, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips),
-  SelectedShipNo = ShipNo;
+  get_piece_position(Ships, CurrentPlayer, ShipNo, ShipPosition), !, %Needed in order to prevent backtracking
+  trace,
+  is_move_to_wormhole(ShipPosition, Direction, NumTiles, Wormholes, InWormhole), !,
+  notrace,
+  display_wormhole_exits(Wormholes, InWormhole).
+/*  choose_exit_wormhole(Wormholes, InWhormhole, OutWormhole),
+  move_through_wormhole(Ships, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, InWhormhole, OutWormhole, NewShips).
+  SelectedShipNo = ShipNo.*/
+
+ select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo) :-
+  move_ship_if_valid(Board, Ships, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, ShipPosition, Direction, NumTiles, NewShips),
+  SelectedShipNo = ShipNo.
+
+ select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo) :-
   display_board(Board, Ships, TradeStations, Colonies),
   write('Invalid movement. Try again.'), nl,
-  select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo).
+  select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo).
 
 display_ship_num_tiles_info:-
   write('How many tiles would you like to move in the chosen direction?'), nl.
@@ -281,3 +293,24 @@ convert_number_to_action(2, colony).
 
 display_action_info:-
   write('Choose action: '),nl,write('1 - Place a trade station.'), nl,write('2 - Place a colony'),nl.
+
+
+display_wormhole_exits(Wormholes, InWormhole) :-
+    write("Choose an exit Wormhole: "),nl,
+    list_length(Wormholes, N),
+    N1 is N-1,
+    display_wormhole_exits(Wormholes, InWormhole, N1, N).
+
+display_wormhole_exits(Wormholes, InWormhole, -1, NumWormholes).
+
+display_wormhole_exits(Wormholes, InWormhole, N, NumWormholes) :-
+    N1 is N - NumWormholes,
+    N1 \= InWormhole,
+    list_get_nth(Wormholes, N1, PrintableWormhole),
+    write('Wormhole in '), write(PrintableWormhole), nl,
+    N2 is N1-1,
+    display_wormhole_exits(Wormholes, InWormhole, N2, NumWormholes).
+
+display_wormhole_exits(Wormholes, InWormhole, N, NumWormholes) :-
+    N1 is N-1,
+    display_wormhole_exits(Wormholes, InWormhole, N1).
