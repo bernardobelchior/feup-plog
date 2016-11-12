@@ -96,22 +96,34 @@ display_ship_selection_menu(NumShipsPerPlayer, CurrentShip):-
   write(NextShip), write(' - Ship '), write(NextShip), nl,
   display_ship_selection_menu(NumShipsPerPlayer, NextShip).
 
-display_board(Board, Ships, TradeStations, Colonies):-
-    display_board(Board, Ships, TradeStations, Colonies, 0, 0, 0).
+display_board([Line | Rest], Ships, TradeStations, Colonies):-
+    Offset = 0,
+    Y = 0,
+    WormholeNo = 0,
+    display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset, WormholeNo, NewWormholeNo),
+    negate(Offset, NextOffset),
+    NextY is Y + 1,
+    display_board([Line | Rest], Ships, TradeStations, Colonies, NextOffset, NextY, NewWormholeNo).
 display_board([Line], Ships, TradeStations, Colonies, Offset, Y, WormholeNo):-
   display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset, WormholeNo, _NewWormholeNo),
   display_last_line(Line, [0, Y], Offset).
-display_board([Line | Rest], Ships, TradeStations, Colonies, Offset, Y, WormholeNo):-
+display_board([LineBefore, Line | Rest], Ships, TradeStations, Colonies, Offset, Y, WormholeNo):-
+  display_in_between_lines(LineBefore, Line, Offset),
   display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset, WormholeNo, NewWormholeNo),
   negate(Offset, NextOffset),
   NextY is Y + 1,
-  display_board(Rest, Ships, TradeStations, Colonies, NextOffset, NextY, NewWormholeNo).
+  display_board([Line | Rest], Ships, TradeStations, Colonies, NextOffset, NextY, NewWormholeNo).
+
+display_in_between_lines(LineBefore, Line, Offset):-
+  trace,
+  print_offset(Offset),
+  %write(' '),
+  print_first_row(LineBefore, Line), nl,
+  print_offset(Offset),
+  %write(' '),
+  print_second_row(LineBefore, Line), nl, notrace.
 
 display_line([Element | Rest], [X, Y], Ships, TradeStations, Colonies, Offset, WormholeNo, NewWormholeNo):-
-  print_offset(Offset),
-  print_first_row([Element | Rest]), nl,
-  print_offset(Offset),
-  print_second_row([Element | Rest]), nl,
   print_offset(Offset),
   print_third_row([Element | Rest]), nl,
   print_offset(Offset),
@@ -141,26 +153,167 @@ print_last_line_second_row([_Element | Rest]):-
   write(' '), print_triangle_right_bottom, print_triangle_left_bottom,
   print_last_line_second_row(Rest).
 
-print_first_row([]).
-print_first_row([null | Rest]):-
-  print_first_row(Rest).
-print_first_row([space | Rest]):-
-  write('        '),
-  print_first_row(Rest).
-print_first_row([_Element | Rest]):-
-  print_triangle_top,
-  print_first_row(Rest).
 
-print_second_row([]).
-print_second_row([null | Rest]):-
-  print_second_row(Rest).
-print_second_row([space | Rest]):-
+print_first_row([ElementAbove], [CurrentElement]):-
+  print_first_row_left(CurrentElement, ElementAbove),
+  print_first_row_right(CurrentElement, null).
+print_first_row([ElementAbove, ElementAboveRight | LineBeforeRest], [CurrentElement | LineRest]):-
+  print_first_row_left(CurrentElement, ElementAbove),
+  print_first_row_right(CurrentElement, ElementAboveRight),
+  print_first_row([ElementAboveRight | LineBeforeRest], LineRest).
+
+print_second_row([ElementAbove], [CurrentElement]):-
+  print_second_row_left(CurrentElement, ElementAbove),
+  print_second_row_right(CurrentElement, null).
+print_second_row([ElementAbove, ElementAboveRight | LineBeforeRest], [CurrentElement | LineRest]):-
+  print_second_row_left(CurrentElement, ElementAbove),
+  print_second_row_right(CurrentElement, ElementAboveRight),
+  print_second_row([ElementAboveRight | LineBeforeRest], LineRest).
+
+print_first_row_left(null, _ElementAbove).
+print_first_row_left(space, _ElementAbove).
+print_first_row_left(_CurrentElement, null):-
+  print_triangle_left_top, write(' ').
+print_first_row_left(_CurrentElement, space):-
+  print_triangle_left_top, write(' ').
+print_first_row_left(_CurrentElement, _ElementAbove).
+
+print_first_row_right(null, _ElementAboveRight).
+print_first_row_right(space, _ElementAboveRight).
+print_first_row_right(_CurrentElement, null):-
+  print_triangle_right_top.
+print_first_row_right(_CurrentElement, space):-
+  print_triangle_right_top.
+print_first_row_right(_CurrentElement, _ElementAboveRight).
+
+print_second_row_left(null, _ElementAbove).
+print_second_row_left(space, _ElementAbove).
+print_second_row_left(_CurrentElement, null):-
+  print_triangle_left_bottom, write(' ').
+print_second_row_left(_CurrentElement, space):-
+  print_triangle_left_bottom, write(' ').
+print_second_row_left(_CurrentElement, _ElementAbove).
+
+print_second_row_right(null, _ElementAboveRight).
+print_second_row_right(space, _ElementAboveRight).
+print_second_row_right(_CurrentElement, null):-
+  print_triangle_right_bottom.
+print_second_row_right(_CurrentElement, space):-
+  print_triangle_right_bottom.
+print_second_row_right(_CurrentElement, _ElementAboveRight).
+
+
+
+/*print_first_row([TopElement], [BottomElement]):-
+  print_first_row_left(TopElement, BottomElement).
+print_first_row([TopElement | TopRest], [BottomElement, BottomElementRight | BottomRest]):-
+  print_first_row_left(TopElement, BottomElement),
+  print_first_row_right(TopElement, BottomElementRight),
+  print_first_row(TopRest, [BottomElementRight | BottomRest]).
+
+print_first_row_left(null, null).
+print_first_row_left(space, null):-
+  write('    ').
+print_first_row_left(null, space):-
+  write('    ').
+print_first_row_left(space, space):-
+  write('    ').
+print_first_row_left(null, _BottomElement):-
+  print_triangle_right_top.
+print_first_row_left(space, _BottomElement). %print_triangle_right_top, print_triangle_left_top, write(' ').
+print_first_row_left(_TopElement, null):-
+  print_triangle_right_top.
+print_first_row_left(_TopElement, space):-
+  print_triangle_right_top.
+print_first_row_left(_TopElement, _BottomElement):-
+  print_triangle_right_top.
+
+print_first_row_right(null, null).
+print_first_row_right(space, null):-
+  write('    ').
+print_first_row_right(null, space):-
+  write('    ').
+print_first_row_right(space, space):-
+  write('    ').
+print_first_row_right(null, _BottomElementRight):-
+  print_triangle_left_top, write(' ').
+print_first_row_right(space, _BottomElementRight):-
+  print_triangle_left_top, write(' ').
+print_first_row_right(_TopElement, null):-
+  print_triangle_left_top, write(' ').
+print_first_row_right(_TopElement, space):-
+  print_triangle_left_top, write(' ').
+print_first_row_right(_TopElement, _BottomElement):-
+  print_triangle_left_top, write(' ').
+
+print_second_row([TopElement], [BottomElement]):-
+  print_second_row_left(TopElement, BottomElement).
+print_second_row([TopElement | TopRest], [BottomElement, BottomElementRight | BottomRest]):-
+  %trace,
+  print_second_row_left(TopElement, BottomElement),
+  print_second_row_right(TopElement, BottomElementRight),
+  print_second_row(TopRest, [BottomElementRight | BottomRest]).
+
+print_second_row_left(null, null).
+print_second_row_left(space, null):-
+  write('    ').
+print_second_row_left(null, space):-
+  write('    ').
+print_second_row_left(space, space):-
+  write('    ').
+print_second_row_left(null, _BottomElement):-
+  print_triangle_right_bottom.
+print_second_row_left(space, _BottomElement).%  print_triangle_right_bottom, print_triangle_left_bottom, write(' ').
+print_second_row_left(_TopElement, null):-
+  print_triangle_right_bottom.
+print_second_row_left(_TopElement, space):-
+  print_triangle_right_bottom.
+print_second_row_left(_TopElement, _BottomElement):-
+  print_triangle_right_bottom.
+
+print_second_row_right(null, null).
+print_second_row_right(space, null):-
+  write('    ').
+print_second_row_right(null, space):-
+  write('    ').
+print_second_row_right(space, space):-
+  write('    ').
+print_second_row_right(null, _BottomElementRight):-
+  print_triangle_left_bottom, write(' ').
+print_second_row_right(space, _BottomElementRight):-
+  print_triangle_left_bottom, write(' ').
+print_second_row_right(_TopElement, null):-
+  print_triangle_left_bottom, write(' ').
+print_second_row_right(_TopElement, space):-
+  print_triangle_left_bottom, write(' ').
+print_second_row_right(_TopElement, _BottomElement):-
+  print_triangle_left_bottom, write(' ').*/
+
+/*
+print_second_row([null | TopRest], [null | BottomRest]):-
+  print_second_row(TopRest, BottomRest).
+print_second_row([space | TopRest], [null | BottomRest]):-
   write('        '),
-  print_second_row(Rest).
-print_second_row([_Element | Rest]):-
+  print_second_row(TopRest, BottomRest).
+print_second_row([null | TopRest], [space | BottomRest]):-
+  write('        '),
+  print_second_row(TopRest, BottomRest).
+print_second_row([null | TopRest], [_BottomElement | BottomRest]):-
+  write('     '),  print_triangle_right_bottom,
+  print_second_row(TopRest, BottomRest).
+print_second_row([space | TopRest], [_BottomElement | BottomRest]):-
+  write('     '),  print_triangle_right_bottom,
+print_second_row(TopRest, BottomRest).
+print_second_row([_TopElement | TopRest], [null | BottomRest]):-
+  write('     '),  print_triangle_left_bottom,
+  print_second_row(TopRest, BottomRest).
+print_second_row([_TopElement | TopRest], [space | BottomRest]):-
+  write('     '),  print_triangle_left_bottom,
+  print_second_row(TopRest, BottomRest).
+print_second_row([_TopElement | TopRest], [_BottomElement | BottomRest]):-
   print_triangle_bottom,
-  print_second_row(Rest).
-
+  print_second_row(TopRest, BottomRest).
+*/
 print_third_row([Element]):-
   print_element_first_line(Element),
   print_final_hexagon(Element, null).
