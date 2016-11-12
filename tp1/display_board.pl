@@ -16,7 +16,7 @@ play(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPl
   check_game_state(Board, NewShips, NewTradeStations, NewColonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
 
 check_game_state(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
-  is_game_over(Board, Ships, TradeStations, Colonies), %add check to see if no more trade statiosn and colonies
+  is_game_over(Board, Ships, TradeStations, Colonies, Wormholes), %add check to see if no more trade statiosn and colonies
   game_over(Board, Ships, TradeStations, Colonies);
   next_player(NumPlayers, CurrentPlayer, NextPlayer),
   play(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, NextPlayer).
@@ -24,31 +24,29 @@ check_game_state(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, N
 game_over(_Board, _Ships, _TradeStations, _Colonies):-
   write('Fim do jogo'), nl.
 
-select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo):-
+select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo):-
   display_player_info(CurrentPlayer, NumShipsPerPlayer),
   display_ship_selection_menu(NumShipsPerPlayer),
   select_ship(NumShipsPerPlayer, ShipNo),
   display_ship_direction_info(ShipNo),
   select_ship_direction(Direction),
-  display_ship_num_tiles_info,
-  select_ship_num_tiles(NumTiles),
-  get_piece_position(Ships, CurrentPlayer, ShipNo, ShipPosition), !, %Needed in order to prevent backtracking
-  trace,
-  is_move_to_wormhole(ShipPosition, Direction, NumTiles, Wormholes, InWormhole), !,
-  notrace,
-  display_wormhole_exits(Wormholes, InWormhole).
-/*  choose_exit_wormhole(Wormholes, InWhormhole, OutWormhole),
-  move_through_wormhole(Ships, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, InWhormhole, OutWormhole, NewShips).
-  SelectedShipNo = ShipNo.*/
+  get_piece_position(Ships, CurrentPlayer, ShipNo, ShipPosition),
+  do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips).
 
- select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo) :-
-  move_ship_if_valid(Board, Ships, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, ShipPosition, Direction, NumTiles, NewShips),
-  SelectedShipNo = ShipNo.
-
- select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo) :-
+ select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo) :-
   display_board(Board, Ships, TradeStations, Colonies),
   write('Invalid movement. Try again.'), nl,
   select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo).
+
+do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips):-
+    is_move_to_wormhole(ShipPosition, Direction, Wormholes, InWormhole).
+    %move_through_wormhole
+
+do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips):-
+  display_ship_num_tiles_info,
+  select_ship_num_tiles(NumTiles),
+  move_ship_if_valid(Board, Ships, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, ShipPosition, Direction, NumTiles, NewShips).
+
 
 display_ship_num_tiles_info:-
   write('How many tiles would you like to move in the chosen direction?'), nl.
@@ -301,7 +299,6 @@ display_wormhole_exits(Wormholes, InWormhole) :-
     N1 is N-1,
     display_wormhole_exits(Wormholes, InWormhole, N1, N).
 
-display_wormhole_exits(Wormholes, InWormhole, -1, NumWormholes).
 
 display_wormhole_exits(Wormholes, InWormhole, N, NumWormholes) :-
     N1 is N - NumWormholes,
