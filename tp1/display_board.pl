@@ -13,7 +13,7 @@ play(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPl
   select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
   display_board(Board, NewShips, TradeStations, Colonies),
   select_ship_action(NewShips, CurrentPlayer, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
-  check_game_state(Board, NewShips, NewTradeStations, NewColonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
+  check_game_state(Board, NewShips, NewTradeStations, NewColonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
 
 check_game_state(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
   is_game_over(Board, Ships, TradeStations, Colonies), %add check to see if no more trade statiosn and colonies
