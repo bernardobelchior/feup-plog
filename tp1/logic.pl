@@ -121,22 +121,27 @@ position_has_piece([Piece | OtherPieces], Position):-
   position_has_piece(OtherPieces, Position).
 
 is_ship_movable(Board, Ships, TradeStations, Colonies, Ship):-
-  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, northwest),
-  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, northeast),
-  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, east),
-  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, southeast),
-  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, southwest),
-  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, west).
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, northwest), !,
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, northeast), !,
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, east), !,
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, southeast), !,
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, southwest), !,
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, west), !.
 
 are_player_ships_movable(_Board, _Ships, _TradeStations, _Colonies, []).
 are_player_ships_movable(Board, Ships, TradeStations, Colonies, [Ship | OtherShips]):-
-  is_ship_movable(Board, Ships, TradeStations, Colonies, Ship),
+  is_ship_movable(Board, Ships, TradeStations, Colonies, Ship);
   are_player_ships_movable(Board, Ships, TradeStations, Colonies, OtherShips).
 
 is_game_over(_Board, [], _TradeStations, _Colonies).
-is_game_over(Board, [PlayerShips | OtherShips], TradeStations, Colonies):-
-  are_player_ships_movable(Board, [PlayerShips | OtherShips], TradeStations, Colonies, PlayerShips),
-  is_game_over(Board, OtherShips, TradeStations, Colonies, TradeStations, Colonies).
+is_game_over(Board, [PlayerShips | OtherShips], [PlayerTradeStations | OtherTradeStations], [PlayerColonies | OtherColonies]):-
+  are_player_ships_movable(Board, [PlayerShips | OtherShips], [PlayerTradeStations | OtherTradeStations], [PlayerColonies | OtherColonies], PlayerShips),
+  not(player_has_trade_stations(PlayerTradeStations)),
+  not(player_has_colonies(PlayerColonies)),
+  is_game_over(Board, OtherShips, OtherTradeStations, OtherColonies).
+
+not(Execute):-Execute, !, fail.
+not(_Execute).
 
 /*Direction
 * Northwest - x   y--
@@ -167,32 +172,33 @@ update_position([X,Y], west, NumTiles, NewPosition):-
   NewX is X - NumTiles,
   NewPosition = [NewX, Y].
 
+
 valid_action(colony, Player, _TradeStations, Colonies) :-
-    player_has_colonies(Player, Colonies),!.
+    list_get_nth(Colonies, Player, PlayerColonies), !,
+    player_has_colonies(PlayerColonies), !.
 
 valid_action(tradeStation, Player, TradeStations, _Colonies) :-
-    player_has_trade_stations(Player, TradeStations),!.
+    list_get_nth(TradeStations, Player, PlayerTradeStations), !,
+    player_has_trade_stations(PlayerTradeStations), !.
 
 valid_action(_Action, _Player, _TradeStations, _Colonies) :-
     write('Player has no buildings of requested type'), fail.
 
-player_has_trade_stations(Player, TradeStations) :-
-    list_get_nth(TradeStations, Player, PlayerTradeStations), !,
+player_has_trade_stations(PlayerTradeStations) :-
     list_length(PlayerTradeStations, NumTradeStations),
-    NumTradeStations < 4.
+    NumTradeStations < 16.
 
-player_has_colonies(Player,Colonies) :-
-    list_get_nth(Colonies, Player, PlayerColonies), !,
+player_has_colonies(PlayerColonies) :-
     list_length(PlayerColonies, NumColonies),
-    NumColonies < 16.
+    NumColonies < 4.
 
-perform_action(Ships, PlayerNo, ShipNo, Action, TradeStations, Colonies, NewTradeStations, NewColonies):-
-    Action = tradeStation, get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
+perform_action(Ships, PlayerNo, ShipNo, tradeStation, TradeStations, Colonies, NewTradeStations, NewColonies):-
+    get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
     place_trade_station(PlayerNo, ShipPosition, TradeStations, NewTradeStations),
     NewColonies = Colonies.
 
-perform_action(Ships, PlayerNo, ShipNo, Action, TradeStations, Colonies, NewTradeStations, NewColonies):-
-    Action = colony, get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
+perform_action(Ships, PlayerNo, ShipNo, colony, TradeStations, Colonies, NewTradeStations, NewColonies):-
+    get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
     place_colony(PlayerNo, ShipPosition, Colonies, NewColonies),
     NewTradeStations = TradeStations.
 

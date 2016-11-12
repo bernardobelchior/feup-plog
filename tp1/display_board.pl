@@ -15,7 +15,7 @@ play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, Curre
   check_game_state(Board, NewShips, NewTradeStations, NewColonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
 
 check_game_state(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
-  is_game_over(Board, Ships, TradeStations, Colonies), %add check to see if no more trade statiosn and colonies
+  is_game_over(Board, Ships, TradeStations, Colonies),
   game_over(Board, Ships, TradeStations, Colonies);
   next_player(NumPlayers, CurrentPlayer, NextPlayer),
   play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NextPlayer).
@@ -97,20 +97,24 @@ display_ship_selection_menu(NumShipsPerPlayer, CurrentShip):-
   display_ship_selection_menu(NumShipsPerPlayer, NextShip).
 
 display_board(Board, Ships, TradeStations, Colonies):-
-    display_board(Board, Ships, TradeStations, Colonies, 0, 0).
-display_board([Line], Ships, TradeStations, Colonies, Offset, Y):-
-  display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset).
-display_board([Line | Rest], Ships, TradeStations, Colonies, Offset, Y):-
-  display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset),
+    display_board(Board, Ships, TradeStations, Colonies, 0, 0, 0).
+display_board([Line], Ships, TradeStations, Colonies, Offset, Y, WormholeNo):-
+  display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset, WormholeNo, _NewWormholeNo).
+display_board([Line | Rest], Ships, TradeStations, Colonies, Offset, Y, WormholeNo):-
+  display_line(Line, [0, Y], Ships, TradeStations, Colonies, Offset, WormholeNo, NewWormholeNo),
   negate(Offset, NextOffset),
   NextY is Y + 1,
-  display_board(Rest, Ships, TradeStations, Colonies, NextOffset, NextY).
+  display_board(Rest, Ships, TradeStations, Colonies, NextOffset, NextY, NewWormholeNo).
 
-display_line([Element | Rest], [X, Y], Ships, TradeStations, Colonies, Offset):-
-  print_offset(Offset), print_first_row([Element | Rest]), nl,
-  print_offset(Offset), print_second_row([Element | Rest]), nl,
-  print_offset(Offset), print_third_row([Element | Rest], [X,Y]), nl,
-  print_offset(Offset), print_fourth_row([Element | Rest], [X,Y], Ships, TradeStations, Colonies), nl.
+display_line([Element | Rest], [X, Y], Ships, TradeStations, Colonies, Offset, WormholeNo, NewWormholeNo):-
+  print_offset(Offset),
+  print_first_row([Element | Rest]), nl,
+  print_offset(Offset),
+  print_second_row([Element | Rest]), nl,
+  print_offset(Offset),
+  print_third_row([Element | Rest], [X,Y]), nl,
+  print_offset(Offset),
+  print_fourth_row([Element | Rest], [X,Y], Ships, TradeStations, Colonies, WormholeNo, NewWormholeNo), nl.
 
 display_last_line(_Line, _Position, Offset):-
   print_offset(Offset), print_first_row([Element | Rest]), nl,
@@ -142,11 +146,13 @@ print_third_row([Element | Rest], [X,Y]):-
   NextX is X + 1,
   print_third_row(Rest, [NextX, Y]).
 
-print_fourth_row([], _Position, _Ships, _TradeStations, _Colonies).
-print_fourth_row([Element | Rest], [X, Y], Ships, TradeStations, Colonies):-
-  print_element_second_line(Element, [X,Y], Ships, TradeStations, Colonies),
+print_fourth_row([], _Position, _Ships, _TradeStations, _Colonies, WormholeNo, FinalWormholeNo):-
+  FinalWormholeNo = WormholeNo.
+print_fourth_row([Element | Rest], [X, Y], Ships, TradeStations, Colonies, WormholeNo, FinalWormholeNo):-
+  print_element_second_line(Element, [X,Y], Ships, TradeStations, Colonies, WormholeNo, NewWormholeNo),
   NextX is X + 1,
-  print_fourth_row(Rest, [NextX, Y], Ships, TradeStations, Colonies).
+  print_fourth_row(Rest, [NextX, Y], Ships, TradeStations, Colonies, NewWormholeNo, FinalWormholeNo).
+
 
 print_fifth_row([]).
 print_fifth_row([null | Rest]):-
@@ -199,10 +205,10 @@ print_element_first_line(space):-
   write('        ').
 
 print_element_first_line(wormhole):-
-  write('|Worm H.').
+  write('|  Worm ').
 
 print_element_first_line(blackHole):-
-  write('|BlackH.').
+  write('| Black ').
 
 print_element_first_line(system0):-
   write('|       ').
@@ -226,11 +232,18 @@ print_element_first_line(redNebula):-
   write('|~~Red~~').
 
 
-print_element_second_line(null, _Position, _Ships, _TradeStations, _Colonies).
-print_element_second_line(space, _Position, _Ships, _TradeStations, _Colonies):-
+print_element_second_line(null, _Position, _Ships, _TradeStations, _Colonies, WormholeNo, WormholeNo).
+print_element_second_line(space, _Position, _Ships, _TradeStations, _Colonies, WormholeNo, WormholeNo):-
   write('        ').
 
-print_element_second_line(_Element, Position, Ships, TradeStations, Colonies):-
+print_element_second_line(wormhole, _Position, _Ships, _TradeStations, _Colonies, WormholeNo, NewWormholeNo):-
+  NewWormholeNo is WormholeNo + 1,
+  write('| Hole '), write(NewWormholeNo).
+
+print_element_second_line(blackHole, _Position, _Ships, _TradeStations, _Colonies, WormholeNo, WormholeNo):-
+  write('| Hole  ').
+
+print_element_second_line(_Element, Position, Ships, TradeStations, Colonies, WormholeNo, WormholeNo):-
   get_player_piece_in_position(Ships, Position, PlayerNo, ShipNo),
   NewPlayerNo is PlayerNo + 1,
   NewShipNo is ShipNo + 1,
