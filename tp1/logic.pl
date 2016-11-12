@@ -219,5 +219,13 @@ place_colony(PlayerNo,ShipPosition, Colonies, NewColonies) :-
     list_replace_nth(Colonies,PlayerNo, NewPlayerColonies, NewColonies).
 
 move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole):-
-    display_wormhole_exits(Wormholes, InWormhole),
+    display_wormhole_exits(Wormholes, NumWormholes, InWormhole),
+    select_wormhole_exit(NumWormholes, InWormhole, SelectedOutWormhole),
+    number_to_wormhole(Wormholes,SelectedOutWormhole, OutWormhole),
     NewShips = Ships.
+
+move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole):-
+    move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole).
+
+number_to_wormhole(Wormholes, SelectedOutWormhole, OutWormhole):-
+    list_get_nth(Wormholes, SelectedOutWormhole, OutWormhole).

@@ -306,16 +306,26 @@ display_action_info:-
   write('Choose action: '),nl,write('1 - Place a trade station.'), nl,write('2 - Place a colony'),nl.
 
 
-display_wormhole_exits(Wormholes, InWormhole) :-
-    write("Choose an exit Wormhole: "),nl,nl,
+display_wormhole_exits(Wormholes, NumWormholes, InWormhole) :-
+    write('Choose an exit Wormhole: '),nl,
     list_length(Wormholes, NumWormholes),
     N is NumWormholes - 1,
     display_nth_wormhole_exit(N, N).
 
-display_nth_wormhole_exit(-1, NumWormholes).
+display_nth_wormhole_exit(-1, NumWormholes):-!.
 
 display_nth_wormhole_exit(N, NumWormholes) :-
     N1 is NumWormholes - N,
     write('Wormhole '), write(N1), nl,
     N2 is N-1,
     display_nth_wormhole_exit(N2, NumWormholes).
+
+select_wormhole_exit(NumWormholes, InWormhole, SelectedOutWormhole):-
+    read(SelectedOutWormhole), integer(SelectedOutWormhole),
+    SelectedOutWormhole \= InWormhole,
+    SelectedOutWormhole >= 0,
+    SelectedOutWormhole < NumWormholes.
+
+select_wormhole_exit(NumWormholes, InWormhole, SelectedOutWormhole):-
+    write('Invalid wormhole. Try again.'),
+    nl, fail.
