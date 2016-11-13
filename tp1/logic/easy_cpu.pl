@@ -3,19 +3,19 @@
 
 %basic movement
 easy_cpu_select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo):-
-  easy_cpu_select_ship(NumShipsPerPlayer, NewShipNo), write('Oi'),
-  get_piece_position(Ships, CurrentPlayer, NewShipNo, ShipPosition), write('Oo'),
-  list_valid_moves(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, ValidMoves), get_char(_), write('Ou'),
-  list_length(ValidMoves, ValidMovesLength), write('Oz'), write(ShipPosition), 
-  ValidMovesLength > 0, !, write('Ola'),
-  easy_cpu_select_ship_direction(ValidMoves, ValidMovesLength, Direction), write('Ole'),
-  easy_cpu_do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShipNo, ShipPosition, Direction, NewShips), write('Oli'),
-  PrintShip is NewShipNo + 1, write('Olo'),
-  ShipNo is NewShipNo, write('Olu'),
-  PlayerActualNo is CurrentPlayer + 1, notrace,
+  easy_cpu_select_ship(NumShipsPerPlayer, NewShipNo),
+  get_piece_position(Ships, CurrentPlayer, NewShipNo, ShipPosition),
+  list_valid_moves(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, ValidMoves), get_char(_),
+  list_length(ValidMoves, ValidMovesLength),
+  ValidMovesLength > 0,
+  easy_cpu_select_ship_direction(ValidMoves, ValidMovesLength, Direction),
+  easy_cpu_do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShipNo, ShipPosition, Direction, NewShips),
+  PrintShip is NewShipNo + 1,
+  ShipNo is NewShipNo,
+  PlayerActualNo is CurrentPlayer + 1,
   nl, write('CPU'), write(PlayerActualNo), write(' moved Ship '), write(PrintShip), write(' '), write(Direction), write(' and').
 
- easy_cpu_select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo):- write('Falehi'),
+ easy_cpu_select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo):-
   easy_cpu_select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo).
 
 easy_cpu_do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips):-
@@ -23,7 +23,7 @@ easy_cpu_do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, N
   easy_cpu_move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole).
 
 easy_cpu_do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, _NumPlayers, _NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips):-
-  easy_cpu_select_ship_num_tiles(NumTiles), write('P'), write(CurrentPlayer), write(' S'), write(ShipNo), write(Direction), write(' '), write(NumTiles), nl, nl, nl,
+  easy_cpu_select_ship_num_tiles(NumTiles),
   move_ship_if_valid(Board, Ships, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, ShipPosition, Direction, NumTiles, NewShips).
 
 %Wormhole movement
@@ -44,7 +44,7 @@ easy_cpu_select_ship_action(Ships, PlayerNo, ShipNo,TradeStations, Colonies,  Ne
   valid_action(Action, PlayerNo, TradeStations, Colonies),!,
   perform_action(Ships, PlayerNo, ShipNo, Action, TradeStations, Colonies, NewTradeStations, NewColonies),
   write(' placed a '), print_changes(TradeStations, NewTradeStations, Colonies, NewColonies), write('.'), nl,
-  write('Enter something to continue'),get_char(_).
+  write('Press any key to continue..'),get_char(_).
 
 easy_cpu_select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  NewTradeStations, NewColonies) :-
   easy_cpu_select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  NewTradeStations, NewColonies).
