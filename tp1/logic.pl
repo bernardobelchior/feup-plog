@@ -1,35 +1,108 @@
 create_board(Board):-
   Board = [
-  [null, null, null, null, null, null, null, null, null, null, null],
-  [null, null, null, null, system0, system3, greenNebula, system2, null, null, null],
-  [null, null, null, blueNebula, system2, system1, blackHole, system1, system1, system1, null],
-  [null, null, null, system2, system3, system0, system2, system2, wormhole, system3, null],
-  [null, null, system3, wormhole, system1, redNebula, system1, blueNebula, system1, null, null],
-  [null, null, system0, system2, system3, system0, system0, system1, system2, null, null],
-  [null, space, redNebula, system3, greenNebula, system0, system1, blackHole, system1, null, null],
-  [null, system3, blackHole, greenNebula, system3, system2, system1, system1, null, null, null],
-  [space, system1, system3, redNebula, wormhole, system0, system1, system1, null, null, null],
-  [space, space, space, system1, blueNebula, system0, system2, null, null, null, null]].
+  [null, null, null, null, null, null, null, null, null, null, null], %0
+  [null, null, null, null, system0, system3, greenNebula, system2, null, null, null], %1
+  [null, null, null, blueNebula, system2, system1, blackHole, system1, system1, system1, null], %2
+  [null, null, null, system2, system3, system0, system2, system2, wormhole, system3, null], %3
+  [null, null, system3, wormhole, system1, redNebula, system1, blueNebula, system1, null, null], %4
+  [null, null, system0, system2, system3, system0, system0, system1, system2, null, null], %5
+  [null, space, redNebula, system3, greenNebula, system0, system1, blackHole, system1, null, null], %6
+  [null, system3, blackHole, greenNebula, system3, system2, system1, system1, null, null, null], %7
+  [space, system1, system3, redNebula, wormhole, system0, system1, system1, null, null, null], %8
+  [space, space, space, system1, blueNebula, system0, system2, null, null, null, null]]. %9
 
-create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
+test_game_over:-
+  create_board(Board),
+  create_players(Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer),
+  game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers).
+
+create_players(Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer):-
   Ships = [
-  [[4,2], [5,2], [5,1]],
+  [[3,2], [4,2], [5,1]],
   [[6,8], [7,8], [5,9]]
   ],
   TradeStations = [
-  [],
-  []
+  [[2, 4], [2, 5], [1, 8]], %3 + 0 + 1
+  [[4, 6]] % 0 1GN
   ],
   Colonies = [
-  [],
-  []
+  [[4, 9]], % 2
+  [[3, 7], [6, 1]] % 5 1GN
+  ],
+  HomeSystems = [
+  [[4, 1], [5, 1], [3, 2], [4, 2]],
+  [[6, 8], [7, 8], [5, 9], [6, 9]]
   ],
   NumPlayers = 2,
   NumShipsPerPlayer = 3.
 
-initialize(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
+initialize(Board, Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer):-
   create_board(Board),
-  create_players(Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer).
+  create_players(Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer).
+
+%FIXME: Missing tie breakers.
+game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers):-
+  game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers, 0, 0, 0).
+
+game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers, BestPlayerNo, BestPlayerPoints, NumPlayers):-
+  ActualPlayerNo is BestPlayerNo + 1,
+  write('Player '), write(ActualPlayerNo), write(' won with '), write(BestPlayerPoints), write(' points!'), nl.
+
+game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers, PlayerNo, PlayerPoints, CurrentPlayer):-
+  calculate_points(Board, TradeStations, Colonies, HomeSystems, CurrentPlayer, NewPlayerPoints),
+  NewPlayerNo is CurrentPlayer + 1,
+  who_has_max(PlayerNo, PlayerPoints, CurrentPlayer, NewPlayerPoints, BestPlayerNo, BestPlayerPoints),
+  game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers, BestPlayerNo, BestPlayerPoints, NewPlayerNo).
+
+%who_has_max(_Player1No, Player1Points, _Player2No, Player1Points, _BestPlayerNo, _BestPlayerPoints):-
+  %fail.
+who_has_max(Player1No, Player1Points, Player2No, Player2Points, BestPlayerNo, BestPlayerPoints):-
+  Player1Points > Player2Points,
+  BestPlayerNo = Player1No,
+  BestPlayerPoints = Player1Points.
+who_has_max(Player1No, Player1Points, Player2No, Player2Points, Player2No, Player2Points).
+
+calculate_points(Board, TradeStations, Colonies, HomeSystems, PlayerNo, NewPlayerPoints):-
+  list_get_nth(TradeStations, PlayerNo, PlayerTradeStations),
+  list_get_nth(Colonies, PlayerNo, PlayerColonies),
+  list_get_nth(HomeSystems, PlayerNo, PlayerHomeSystems),
+  calculate_control_points(Board, PlayerTradeStations, TradeStationsControlPoints, TSGreenNebulasControlled, TSBlueNebulasControlled, TSRedNebulasControlled),
+  calculate_control_points(Board, PlayerColonies, ColoniesControlPoints, CGreenNebulasControlled, CBlueNebulasControlled, CRedNebulasControlled),
+  %FIXME: missing adjacent
+  GreenNebulasControlled is TSGreenNebulasControlled + CGreenNebulasControlled,
+  BlueNebulasControlled is TSBlueNebulasControlled + CBlueNebulasControlled,
+  RedNebulasControlled is TSRedNebulasControlled + CRedNebulasControlled,
+  get_points_from_nebulas(Board, GreenNebulasControlled, GreenNebulaPoints),
+  get_points_from_nebulas(Board, BlueNebulasControlled, BlueNebulaPoints),
+  get_points_from_nebulas(Board, RedNebulasControlled, RedNebulaPoints),
+  NewPlayerPoints is TradeStationsControlPoints + ColoniesControlPoints + GreenNebulaPoints + BlueNebulaPoints + RedNebulaPoints.
+
+calculate_control_points(Board, [], 0, 0, 0, 0).
+calculate_control_points(Board, [[X, Y] | OtherPieces], ControlPoints, GreenNebulasControlled, BlueNebulasControlled, RedNebulasControlled):-
+  list_get_xy(Board, X, Y, Tile),
+  get_points_from_tile(Tile, Points, NewGreenNebulasControlled, NewBlueNebulasControlled, NewRedNebulasControlled),
+  calculate_control_points(Board, OtherPieces, NewControlPoints, TmpGreenNebulasControlled, TmpBlueNebulasControlled, TmpRedNebulasControlled),
+  GreenNebulasControlled is NewGreenNebulasControlled + TmpGreenNebulasControlled,
+  BlueNebulasControlled is NewBlueNebulasControlled + TmpBlueNebulasControlled,
+  RedNebulasControlled is NewRedNebulasControlled + TmpRedNebulasControlled,
+  ControlPoints is NewControlPoints + Points.
+
+get_points_from_tile(null, 0, 0, 0, 0).
+get_points_from_tile(space, 0, 0, 0, 0).
+get_points_from_tile(wormhole, 0, 0, 0, 0).
+get_points_from_tile(blackHole, 0, 0, 0, 0).
+get_points_from_tile(system0, 0, 0, 0, 0).
+get_points_from_tile(system1, 1, 0, 0, 0).
+get_points_from_tile(system2, 2, 0, 0, 0).
+get_points_from_tile(system3, 3, 0, 0, 0).
+get_points_from_tile(greenNebula, 0, 1, 0, 0).
+get_points_from_tile(blueNebula, 0, 0, 1, 0).
+get_points_from_tile(redNebula, 0, 0, 0, 1).
+
+get_points_from_nebulas(_Board, 0, 0).
+get_points_from_nebulas(_Board, 1, 2).
+get_points_from_nebulas(_Board, 2, 5).
+get_points_from_nebulas(_Board, _C, 8). %FIXME: Check for all nebulas
 
 get_piece_position(PieceList, PlayerNo, PieceNo, PiecePosition):-
   list_get_xy(PieceList, PieceNo, PlayerNo, PiecePosition).

@@ -2,26 +2,23 @@
 :-include('list_utils.pl').
 
 start:-
-  initialize(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer),
-  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer).
+  initialize(Board, Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer),
+  play(Board, Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer).
 
-play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
-  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, 0).
-play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
+play(Board, Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer):-
+  play(Board, Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer, 0).
+play(Board, Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
   display_board(Board, Ships, TradeStations, Colonies),
   select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
   display_board(Board, NewShips, TradeStations, Colonies),
   select_ship_action(NewShips, CurrentPlayer, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
-  check_game_state(Board, NewShips, NewTradeStations, NewColonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
+  check_game_state(Board, NewShips, NewTradeStations, NewColonies, HomeSystems, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
 
-check_game_state(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
+check_game_state(Board, Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
   is_game_over(Board, Ships, TradeStations, Colonies),
-  game_over(Board, Ships, TradeStations, Colonies);
+  game_over(Board, TradeStations, Colonies, HomeSystems);
   next_player(NumPlayers, CurrentPlayer, NextPlayer),
-  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NextPlayer).
-
-game_over(_Board, _Ships, _TradeStations, _Colonies):-
-  write('Fim do jogo'), nl.
+  play(Board, Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer, NextPlayer).
 
 select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo):-
   display_player_info(CurrentPlayer, NumShipsPerPlayer),
