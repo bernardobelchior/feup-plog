@@ -52,125 +52,7 @@ game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers, PlayerNo, Pla
   who_has_max(PlayerNo, PlayerPoints, CurrentPlayer, NewPlayerPoints, BestPlayerNo, BestPlayerPoints),
   game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers, BestPlayerNo, BestPlayerPoints, NewPlayerNo).
 
-
-who_has_max(Player1No, Player1Points, _Player2No, Player2Points, BestPlayerNo, BestPlayerPoints):-
-  Player1Points > Player2Points,
-  BestPlayerNo = Player1No,
-  BestPlayerPoints = Player1Points.
-who_has_max(_Player1No, _Player1Points, Player2No, Player2Points, Player2No, Player2Points).
-
-calculate_points(Board, TradeStations, Colonies, HomeSystems, PlayerNo, NewPlayerPoints):-
-  list_get_nth(TradeStations, PlayerNo, PlayerTradeStations),
-  list_get_nth(Colonies, PlayerNo, PlayerColonies),
-  calculate_control_points(Board, PlayerTradeStations, TradeStationsControlPoints, TSGreenNebulasControlled, TSBlueNebulasControlled, TSRedNebulasControlled),
-  calculate_control_points(Board, PlayerColonies, ColoniesControlPoints, CGreenNebulasControlled, CBlueNebulasControlled, CRedNebulasControlled),
-  list_delete_nth(TradeStations, PlayerNo, OtherTradeStations),
-  list_delete_nth(Colonies, PlayerNo, OtherColonies),
-  list_delete_nth(HomeSystems, PlayerNo, OtherHomeSystems),
-  calculate_adjacency_points(PlayerTradeStations, OtherTradeStations, OtherColonies, OtherHomeSystems, AdjacencyPoints),
-  GreenNebulasControlled is TSGreenNebulasControlled + CGreenNebulasControlled,
-  BlueNebulasControlled is TSBlueNebulasControlled + CBlueNebulasControlled,
-  RedNebulasControlled is TSRedNebulasControlled + CRedNebulasControlled,
-  get_points_from_nebulas(Board, GreenNebulasControlled, GreenNebulaPoints),
-  get_points_from_nebulas(Board, BlueNebulasControlled, BlueNebulaPoints),
-  get_points_from_nebulas(Board, RedNebulasControlled, RedNebulaPoints),
-  NewPlayerPoints is TradeStationsControlPoints + ColoniesControlPoints + AdjacencyPoints + GreenNebulaPoints + BlueNebulaPoints + RedNebulaPoints.
-
-calculate_adjacency_points([], _OtherTradeStations, _OtherColonies, _OtherHomeSystems, 0).
-
-calculate_adjacency_points([TradeStation | Rest], OtherTradeStations, OtherColonies, OtherHomeSystems, AdjacencyPoints):-
-  calculate_adjacency_points_for_station(TradeStation, west, OtherTradeStations, OtherColonies, OtherHomeSystems, WPoints),
-  calculate_adjacency_points_for_station(TradeStation, northwest, OtherTradeStations, OtherColonies, OtherHomeSystems, NWPoints),
-  calculate_adjacency_points_for_station(TradeStation, northeast, OtherTradeStations, OtherColonies, OtherHomeSystems, NEPoints),
-  calculate_adjacency_points_for_station(TradeStation, east, OtherTradeStations, OtherColonies, OtherHomeSystems, EPoints),
-  calculate_adjacency_points_for_station(TradeStation, southeast, OtherTradeStations, OtherColonies, OtherHomeSystems, SEPoints),
-  calculate_adjacency_points_for_station(TradeStation, southwest, OtherTradeStations, OtherColonies, OtherHomeSystems, SWPoints),
-  calculate_adjacency_points(Rest, OtherTradeStations, OtherColonies, OtherHomeSystems, NextTSAdjacencyPoints),
-  AdjacencyPoints is NextTSAdjacencyPoints + WPoints + NWPoints + NEPoints + EPoints + SEPoints + SWPoints.
-
-calculate_adjacency_points_for_station(TradeStation, Direction, OtherTradeStations, OtherColonies, OtherHomeSystems, DirectionPoints):-
-  update_position(TradeStation, Direction, 1, Position),
-  position_has_piece_of_any_type(Position, OtherTradeStations, OtherColonies, OtherHomeSystems),
-  DirectionPoints = 1.
-calculate_adjacency_points_for_station(_TradeStation, _Direction, _OtherTradeStations, _OtherColonies, _OtherHomeSystems, 0).
-
-position_has_piece_of_any_type(Position, TradeStations, Colonies, HomeSystems):-
-    position_has_piece_of_type(TradeStations, Position);
-    position_has_piece_of_type(Colonies, Position);
-    position_has_piece_of_type(HomeSystems, Position).
-
-position_has_piece_of_type([], _Position):- fail.
-position_has_piece_of_type([PlayerPieces | OtherPieces], Position):-
-  position_has_piece(PlayerPieces, Position);
-  position_has_piece_of_type(OtherPieces, Position).
-
-calculate_control_points(_Board, [], 0, 0, 0, 0).
-calculate_control_points(Board, [[X, Y] | OtherPieces], ControlPoints, GreenNebulasControlled, BlueNebulasControlled, RedNebulasControlled):-
-  list_get_xy(Board, X, Y, Tile),
-  get_points_from_tile(Tile, Points, NewGreenNebulasControlled, NewBlueNebulasControlled, NewRedNebulasControlled),
-  calculate_control_points(Board, OtherPieces, NewControlPoints, TmpGreenNebulasControlled, TmpBlueNebulasControlled, TmpRedNebulasControlled),
-  GreenNebulasControlled is NewGreenNebulasControlled + TmpGreenNebulasControlled,
-  BlueNebulasControlled is NewBlueNebulasControlled + TmpBlueNebulasControlled,
-  RedNebulasControlled is NewRedNebulasControlled + TmpRedNebulasControlled,
-  ControlPoints is NewControlPoints + Points.
-
-get_points_from_tile(null, 0, 0, 0, 0).
-get_points_from_tile(space, 0, 0, 0, 0).
-get_points_from_tile(wormhole, 0, 0, 0, 0).
-get_points_from_tile(blackHole, 0, 0, 0, 0).
-get_points_from_tile(system0, 0, 0, 0, 0).
-get_points_from_tile(system1, 1, 0, 0, 0).
-get_points_from_tile(system2, 2, 0, 0, 0).
-get_points_from_tile(system3, 3, 0, 0, 0).
-get_points_from_tile(greenNebula, 0, 1, 0, 0).
-get_points_from_tile(blueNebula, 0, 0, 1, 0).
-get_points_from_tile(redNebula, 0, 0, 0, 1).
-
-get_points_from_nebulas(_Board, 0, 0).
-get_points_from_nebulas(_Board, 1, 2).
-get_points_from_nebulas(_Board, 2, 5).
-get_points_from_nebulas(_Board, _C, 8). %FIXME: Check for all nebulas
-
-get_piece_position(PieceList, PlayerNo, PieceNo, PiecePosition):-
-  list_get_xy(PieceList, PieceNo, PlayerNo, PiecePosition).
-
-next_player(NumPlayers, CurrentPlayer, NextPlayer):-
-  NextPlayerTmp is CurrentPlayer + 1,
-  NextPlayerTmp < NumPlayers,
-  NextPlayer = NextPlayerTmp;
-  NextPlayer = 0.
-
-%Not
-negate(0, Result):-
-  Result is 1.
-negate(_A, Result):-
-  Result is 0.
-
-%Checks if a position is equal.
-equal_position([X1,Y1], [X2, Y2]):-
-  X1 == X2, Y1 == Y2.
-
-%Gets the player and piece in the specified position
-get_player_piece_in_position([PlayerPieces | OtherPlayersPieces], Position, PlayerNo, PieceNo):-
-  get_piece_number_in_position(PlayerPieces, Position, PieceNo),
-  PlayerNo = 0;
-  get_player_piece_in_position(OtherPlayersPieces, Position, NextPlayerNo, PieceNo),
-  PlayerNo is NextPlayerNo + 1.
-
-%Gets the piece in the specified position
-get_piece_number_in_position([FirstPiecePosition | OtherPieces], Position, PieceNo):-
-  equal_position(Position, FirstPiecePosition),
-  PieceNo = 0;
-  get_piece_number_in_position(OtherPieces, Position, NextPieceNo),
-  PieceNo is NextPieceNo + 1.
-
-get_tile_in_position(Board, [X , Y], Tile):-
-  list_get_xy(Board, X, Y, Tile).
-
-%checks if a direction is valid, X and Y are the distances in X and Y that will be traveled
-valid_direction(X,Y) :- (X \= 0; Y\=0), ((X \= 0, Y = 0); (X = 0, Y \= 0); (X = -Y)).
-
-%is_move_to_wormhole(+ShipPosition, +Direction, +NumTiles, +Wormholes, -InWormhole)
+%%is_move_to_wormhole(+ShipPosition, +Direction, +NumTiles, +Wormholes, -InWormhole)
 is_move_to_wormhole(ShipPosition, Direction, Wormholes, InWormhole) :-
     update_position(ShipPosition, Direction, 1, NewPosition),
     list_find(Wormholes, NewPosition, 0, InWormhole).
@@ -202,24 +84,6 @@ is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direct
   NewNumTiles is NumTiles - 1,
   is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, NewPosition, Direction, NewNumTiles, TotalNumTiles).
 
-is_tile_passable(system0).
-is_tile_passable(system1).
-is_tile_passable(system2).
-is_tile_passable(system3).
-is_tile_passable(greenNebula).
-is_tile_passable(redNebula).
-is_tile_passable(blueNebula).
-
-is_tile_unoccupied([], _Position).
-is_tile_unoccupied([PlayerPieces | OtherPlayersPieces], Position):-
-  position_has_piece(PlayerPieces, Position), !, fail;
-  is_tile_unoccupied(OtherPlayersPieces, Position).
-
-position_has_piece([], _Position):- fail.
-position_has_piece([Piece | OtherPieces], Position):-
-  equal_position(Piece, Position);
-  position_has_piece(OtherPieces, Position).
-
 is_ship_movable(Board, Ships, TradeStations, Colonies, Wormholes, Ship):-
   is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Ship, northwest), !,
   is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Ship, northeast), !,
@@ -240,39 +104,6 @@ is_game_over(Board, [PlayerShips | OtherShips], [PlayerTradeStations | OtherTrad
   not(player_has_colonies(PlayerColonies)),
   is_game_over(Board, OtherShips, OtherTradeStations, OtherColonies, Wormholes).
 
-not(Execute):-Execute, !, fail.
-not(_Execute).
-
-/*Direction
-* Northwest - x   y--
-* Northeast - x++ y--
-* East -      x++ y
-* Southeast - x   y++
-* Southwest - x-- y++
-* West -      x-- y
-*/
-update_position([X,Y], northwest, NumTiles, NewPosition):-
-  NewY is Y - NumTiles,
-  NewPosition = [X, NewY].
-update_position([X,Y], northeast, NumTiles, NewPosition):-
-  NewX is X + NumTiles,
-  NewY is Y - NumTiles,
-  NewPosition = [NewX, NewY].
-update_position([X,Y], east, NumTiles, NewPosition):-
-  NewX is X + NumTiles,
-  NewPosition = [NewX, Y].
-update_position([X,Y], southeast, NumTiles, NewPosition):-
-  NewY is Y + NumTiles,
-  NewPosition = [X, NewY].
-update_position([X,Y], southwest, NumTiles, NewPosition):-
-  NewX is X - NumTiles,
-  NewY is Y + NumTiles,
-  NewPosition = [NewX, NewY].
-update_position([X,Y], west, NumTiles, NewPosition):-
-  NewX is X - NumTiles,
-  NewPosition = [NewX, Y].
-
-
 valid_action(colony, Player, _TradeStations, Colonies) :-
     list_get_nth(Colonies, Player, PlayerColonies), !,
     player_has_colonies(PlayerColonies), !.
@@ -283,14 +114,6 @@ valid_action(tradeStation, Player, TradeStations, _Colonies) :-
 
 valid_action(_Action, _Player, _TradeStations, _Colonies) :-
     write('Player has no buildings of requested type'), fail.
-
-player_has_trade_stations(PlayerTradeStations) :-
-    list_length(PlayerTradeStations, NumTradeStations),
-    NumTradeStations < 16.
-
-player_has_colonies(PlayerColonies) :-
-    list_length(PlayerColonies, NumColonies),
-    NumColonies < 4.
 
 perform_action(Ships, PlayerNo, ShipNo, tradeStation, TradeStations, Colonies, NewTradeStations, NewColonies):-
     get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
