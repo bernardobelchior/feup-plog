@@ -40,7 +40,7 @@ easy_cpu_select_ship_action(Ships, PlayerNo, ShipNo,TradeStations, Colonies,  Ne
   valid_action(Action, PlayerNo, TradeStations, Colonies),!,
   perform_action(Ships, PlayerNo, ShipNo, Action, TradeStations, Colonies, NewTradeStations, NewColonies),
   write('A '), print_changes(TradeStations, NewTradeStations, Colonies, NewColonies), write(' was placed.'), nl,
-  write('Enter something to continue'),read(Buffer).
+  write('Enter something to continue'),get_char(_).
 
 easy_cpu_select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  NewTradeStations, NewColonies) :-
   easy_cpu_select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  NewTradeStations, NewColonies).

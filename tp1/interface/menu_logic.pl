@@ -10,7 +10,15 @@ select_main_menu_action:-
   main_menu_go_to_menu(Action).
 
 main_menu_go_to_menu(1):-
-  start_game.
+  start_game(2, _).
+main_menu_go_to_menu(2):-
+  start_game(1, easy).
+main_menu_go_to_menu(3):-
+  start_game(1, hard).
+main_menu_go_to_menu(4):-
+  start_game(0, easy).
+main_menu_go_to_menu(5):-
+  start_game(0, hard).
 %main_menu_go_to_menu(6):-
   %how_to_play_menu.
 main_menu_go_to_menu(7).

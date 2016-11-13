@@ -1,32 +1,46 @@
-start_game:-
+start_game(HumanPlayers, CPUDifficulty):-
   initialize(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer),
-  play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer).
+  next_play(HumanPlayers, -1, Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CPUDifficulty).
 
-play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer):-
-  play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, 0).
-
-play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
-  CurrentPlayer = 0,
+human_play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, HumanPlayers, CPUDifficulty):-
   display_board(Board, Ships, TradeStations, Colonies),
   select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
   display_board(Board, NewShips, TradeStations, Colonies),
   select_ship_action(NewShips, CurrentPlayer, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
-  check_game_state(Board, NewShips, NewTradeStations, NewColonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
+  check_game_state(Board, NewShips, NewTradeStations, NewColonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, HumanPlayers, CPUDifficulty).
 
-play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
+cpu_play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, HumanPlayers, easy):-
   display_board(Board, Ships, TradeStations, Colonies),
   easy_cpu_select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
   easy_cpu_select_ship_action(NewShips, CurrentPlayer, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
   display_board(Board, NewShips, NewTradeStations, NewColonies),
-  check_game_state(Board, NewShips, NewTradeStations, NewColonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
+  check_game_state(Board, NewShips, NewTradeStations, NewColonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, HumanPlayers, easy).
 
-check_game_state(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
+cpu_play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, HumanPlayers, hard):-
+  display_board(Board, Ships, TradeStations, Colonies),
+  easy_cpu_select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
+  easy_cpu_select_ship_action(NewShips, CurrentPlayer, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
+  display_board(Board, NewShips, NewTradeStations, NewColonies),
+  check_game_state(Board, NewShips, NewTradeStations, NewColonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, HumanPlayers, hard).
+
+check_game_state(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, HumanPlayers, CPUDifficulty):-
   is_game_over(Board, Ships, TradeStations, Colonies, Wormholes),
   game_over(Board, TradeStations, Colonies, HomeSystems);
-  next_player(NumPlayers, CurrentPlayer, NextPlayer),
-  play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, NextPlayer).
+  next_play(HumanPlayers, CurrentPlayer, Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CPUDifficulty).
 
-  
+next_play(0, CurrentPlayer, Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CPUDifficulty):-
+  NextPlayer is mod(CurrentPlayer+1, NumPlayers),
+  cpu_play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, NextPlayer, 0, CPUDifficulty).
+next_play(NumPlayers, CurrentPlayer, Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CPUDifficulty):-
+  NextPlayer is mod(CurrentPlayer+1, NumPlayers),
+  human_play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, NextPlayer, NumPlayers, CPUDifficulty).
+next_play(HumanPlayers, CurrentPlayer, Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CPUDifficulty):-
+  NextPlayer is mod(CurrentPlayer+1, NumPlayers),
+  NextPlayer < NumPlayers - 1,
+  human_play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, NextPlayer, HumanPlayers, CPUDifficulty);
+  cpu_play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, NextPlayer, HumanPlayers, CPUDifficulty).
+
+
 select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo):-
   display_player_info(CurrentPlayer, NumShipsPerPlayer),
   display_ship_selection_menu(NumShipsPerPlayer),
