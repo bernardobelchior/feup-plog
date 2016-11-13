@@ -7,7 +7,9 @@ easy_cpu_select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, 
   easy_cpu_select_ship_direction(ReadDirection),
   number_to_direction(ReadDirection,Direction),
   get_piece_position(Ships, CurrentPlayer, ShipNo, ShipPosition),
-  easy_cpu_do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips).
+  easy_cpu_do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips),
+  PrintShip is ShipNo + 1,
+  nl, write('CPU moved ship '), write(PrintShip),nl.
 
  easy_cpu_select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, _ShipNo) :-
   easy_cpu_select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, _SelectedShipNo).
@@ -27,8 +29,7 @@ easy_cpu_move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes,
     move_ship(Ships, OutWormhole, CurrentPlayer, ShipNo, west, 0, TmpShips),
     easy_cpu_select_ship_direction(SelectedDirection),
     number_to_direction(SelectedDirection,TmpDirection),
-    move_ship_if_valid(Board, TmpShips, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, OutWormhole, TmpDirection, 1, NewShips),
-    write(ShipNo), nl.
+    move_ship_if_valid(Board, TmpShips, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, OutWormhole, TmpDirection, 1, NewShips).
 
 move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole):-
     move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole).
@@ -37,7 +38,9 @@ easy_cpu_select_ship_action(Ships, PlayerNo, ShipNo,TradeStations, Colonies,  Ne
   easy_cpu_select_action(ReadAction),
   convert_number_to_action(ReadAction,Action),
   valid_action(Action, PlayerNo, TradeStations, Colonies),!,
-  perform_action(Ships, PlayerNo, ShipNo, Action, TradeStations, Colonies, NewTradeStations, NewColonies).
+  perform_action(Ships, PlayerNo, ShipNo, Action, TradeStations, Colonies, NewTradeStations, NewColonies),
+  write('A '), print_changes(TradeStations, NewTradeStations, Colonies, NewColonies), write(' was placed.'), nl,
+  write('Enter something to continue'),read(Buffer).
 
 easy_cpu_select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  NewTradeStations, NewColonies) :-
   easy_cpu_select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  NewTradeStations, NewColonies).
@@ -61,7 +64,7 @@ easy_cpu_select_wormhole_exit(Wormholes,NumWormholes, InWormhole, OutWormhole) :
     easy_cpu_select_wormhole_exit(Wormholes,NumWormholes, InWormhole, OutWormhole).
 
 easy_cpu_select_action(Action) :-
-    random(0,2,Action).
+    random(1,3,Action).
 
 easy_cpu_select_ship_num_tiles(NumTiles) :-
     random(1,7, NumTiles).
