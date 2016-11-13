@@ -4,6 +4,7 @@
 :-include('interface/display_board.pl').
 :-include('interface/interface.pl').
 :-include('interface/menus.pl').
+:-include('interface/menu_logic.pl').
 :-include('general_utils.pl').
 :-include('list_utils.pl').
 

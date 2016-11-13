@@ -1,16 +1,3 @@
-main_menu:-
-  draw_main_menu,
-  select_main_menu_action;
-  main_menu.
-
-select_main_menu_action:-
-  read(Action),
-  Action > 0,
-  Action < 6,
-  go_to_menu(Action).
-
-go_to_menu(Action).
-
 start_game:-
   initialize(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer),
   play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer).
