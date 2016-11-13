@@ -6,10 +6,18 @@ play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, 
   play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, 0).
 
 play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
+  CurrentPlayer = 0,
   display_board(Board, Ships, TradeStations, Colonies),
   select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
   display_board(Board, NewShips, TradeStations, Colonies),
   select_ship_action(NewShips, CurrentPlayer, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
+  check_game_state(Board, NewShips, NewTradeStations, NewColonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
+
+play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
+  display_board(Board, Ships, TradeStations, Colonies),
+  easy_cpu_select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
+  easy_cpu_select_ship_action(NewShips, CurrentPlayer, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
+  display_board(Board, NewShips, NewTradeStations, NewColonies),
   check_game_state(Board, NewShips, NewTradeStations, NewColonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
 
 check_game_state(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
@@ -18,6 +26,7 @@ check_game_state(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, 
   next_player(NumPlayers, CurrentPlayer, NextPlayer),
   play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, NextPlayer).
 
+  
 select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo):-
   display_player_info(CurrentPlayer, NumShipsPerPlayer),
   display_ship_selection_menu(NumShipsPerPlayer),

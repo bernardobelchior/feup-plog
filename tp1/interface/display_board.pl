@@ -194,3 +194,11 @@ print_element_second_line(_Element, Position, Ships, TradeStations, Colonies, Wo
   write(NewColonyNo),
   write(' ');
   write('|       ').
+
+print_changes(TradeStations, NewTradeStations, Colonies, NewColonies) :-
+    TradeStations = NewTradeStations,
+    Colonies \= NewColonies,
+    write('Colony').
+
+print_changes(TradeStations, NewTradeStations, Colonies, NewColonies) :-
+    write('Trade Station').
