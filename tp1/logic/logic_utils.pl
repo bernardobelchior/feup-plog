@@ -92,7 +92,7 @@ player_has_colonies(PlayerColonies) :-
   list_length(PlayerColonies, NumColonies),
   NumColonies < 4.
 
-append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, [], []).
+append_if_direction_is_valid(_Board, _Ships, _TradeStations, _Colonies, _Wormholes, _Position, [], []).
 append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, [Direction | Others], ValidMoves):-
   append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Others, NewValidMoves),
   list_append_if_true(NewValidMoves, is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction), [Direction], ValidMoves).

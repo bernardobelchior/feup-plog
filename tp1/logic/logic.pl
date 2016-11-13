@@ -80,18 +80,17 @@ is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, D
   is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction, 1, 0).
 
 is_move_valid(_Board, _Ships, _TradeStations, _Colonies, _Wormholes, _Position, _Direction, 0, _TotalNumTiles).
-is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction, 1, 1).
+is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction, 1, 1):-
   update_position(Position, Direction, 1, NewPosition),
   get_tile_in_position(Board, NewPosition, Tile), !, % Cut needed in order to prevent backtracking
   is_tile_passable(Tile, Board, Ships, TradeStations, Colonies, Wormholes, NewPosition),
   is_tile_unoccupied(Ships, NewPosition),
   is_tile_unoccupied(TradeStations, NewPosition),
-  is_tile_unoccupied(Colonies, NewPosition),
-  NewNumTiles is NumTiles - 1,
-  is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, NewPosition, Direction, NewNumTiles, TotalNumTiles).
+  is_tile_unoccupied(Colonies, NewPosition).
 is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction, NumTiles, TotalNumTiles):-
   update_position(Position, Direction, 1, NewPosition),
   get_tile_in_position(Board, NewPosition, Tile), !, % Cut needed in order to prevent backtracking
+  Tile \= wormhole,
   is_tile_passable(Tile, Board, Ships, TradeStations, Colonies, Wormholes, NewPosition),
   is_tile_unoccupied(Ships, NewPosition),
   is_tile_unoccupied(TradeStations, NewPosition),
@@ -156,19 +155,19 @@ can_move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, InWo
   list_delete_nth(Wormholes, InWormhole, OutWormholes),
   can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, OutWormholes).
 
-can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | _Others]):-
   is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition, northwest).
-can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | _Others]):-
   is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition, northeast).
-can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | _Others]):-
   is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition, east).
-can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | _Others]):-
   is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition, southeast).
-can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | _Others]):-
   is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition, southwest).
-can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | _Others]):-
   is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition, west).
-can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [_WormholePosition | Others]):-
   can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, Others).
 
 move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, _NumPlayers, _NumShipsPerPlayer, CurrentPlayer, ShipNo, _ShipPosition, _Direction, NewShips, InWormhole):-
