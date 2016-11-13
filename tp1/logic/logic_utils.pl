@@ -8,8 +8,8 @@ position_has_piece_of_type([PlayerPieces | OtherPieces], Position):-
   position_has_piece(PlayerPieces, Position);
   position_has_piece_of_type(OtherPieces, Position).
 
-get_piece_position(PieceList, PlayerNo, PieceNo, PiecePosition):-
-  list_get_xy(PieceList, PieceNo, PlayerNo, PiecePosition).
+get_piece_position(PieceList, PlayerNo, PieceNo, PiecePosition):- !,
+  list_get_xy(PieceList, PieceNo, PlayerNo, PiecePosition), !.
 
 next_player(NumPlayers, CurrentPlayer, NextPlayer):-
   NextPlayerTmp is CurrentPlayer + 1,
@@ -86,13 +86,13 @@ update_position([X,Y], west, NumTiles, NewPosition):-
 
 player_has_trade_stations(PlayerTradeStations) :-
   list_length(PlayerTradeStations, NumTradeStations),
-  NumTradeStations < 16.
+  NumTradeStations < 4.
 
 player_has_colonies(PlayerColonies) :-
   list_length(PlayerColonies, NumColonies),
-  NumColonies < 4.
+  NumColonies < 16.
 
 append_if_direction_is_valid(_Board, _Ships, _TradeStations, _Colonies, _Wormholes, _Position, [], []).
-append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, [Direction | Others], ValidMoves):-
+append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, [Direction | Others], ValidMoves):- 
   append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Others, NewValidMoves),
   list_append_if_true(NewValidMoves, is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction), [Direction], ValidMoves).

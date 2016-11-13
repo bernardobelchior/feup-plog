@@ -42,8 +42,9 @@ initialize(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPla
 game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers):-
   game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers, 0, 0, 0).
 
-game_over(_Board, _TradeStations, _Colonies, _HomeSystems, NumPlayers, BestPlayerNo, BestPlayerPoints, NumPlayers):-
+game_over(_Board, TradeStations, Colonies, _HomeSystems, NumPlayers, BestPlayerNo, BestPlayerPoints, NumPlayers):-
   ActualPlayerNo is BestPlayerNo + 1,
+  write(TradeStations), nl, write(Colonies), nl,
   write('Player '), write(ActualPlayerNo), write(' won with '), write(BestPlayerPoints), write(' points!'), nl.
 
 game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers, PlayerNo, PlayerPoints, CurrentPlayer):-
@@ -82,7 +83,7 @@ is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, D
 is_move_valid(_Board, _Ships, _TradeStations, _Colonies, _Wormholes, _Position, _Direction, 0, _TotalNumTiles).
 is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction, 1, 1):-
   update_position(Position, Direction, 1, NewPosition),
-  get_tile_in_position(Board, NewPosition, Tile), !, % Cut needed in order to prevent backtracking
+  get_tile_in_position(Board, NewPosition, Tile), !,  % Cut needed in order to prevent backtracking
   is_tile_passable(Tile, Board, Ships, TradeStations, Colonies, Wormholes, NewPosition),
   is_tile_unoccupied(Ships, NewPosition),
   is_tile_unoccupied(TradeStations, NewPosition),
@@ -129,15 +130,13 @@ valid_action(tradeStation, Player, TradeStations, _Colonies) :-
 valid_action(_Action, _Player, _TradeStations, _Colonies) :-
   write('Player has no buildings of requested type'), fail.
 
-perform_action(Ships, PlayerNo, ShipNo, tradeStation, TradeStations, Colonies, NewTradeStations, NewColonies):-
+perform_action(Ships, PlayerNo, ShipNo, tradeStation, TradeStations, Colonies, NewTradeStations, Colonies):-
   get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
-  place_trade_station(PlayerNo, ShipPosition, TradeStations, NewTradeStations),
-  NewColonies = Colonies.
+  place_trade_station(PlayerNo, ShipPosition, TradeStations, NewTradeStations).
 
-perform_action(Ships, PlayerNo, ShipNo, colony, TradeStations, Colonies, NewTradeStations, NewColonies):-
+perform_action(Ships, PlayerNo, ShipNo, colony, TradeStations, Colonies, TradeStations, NewColonies):-
   get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
-  place_colony(PlayerNo, ShipPosition, Colonies, NewColonies),
-  NewTradeStations = TradeStations.
+  place_colony(PlayerNo, ShipPosition, Colonies, NewColonies).
 
 place_trade_station(PlayerNo, ShipPosition, TradeStations, NewTradeStations):-
   list_get_nth(TradeStations, PlayerNo, PlayerTradeStations),
@@ -189,7 +188,7 @@ number_to_wormhole(Wormholes, SelectedOutWormhole, OutWormhole):-
 list_valid_moves(Board, Ships, TradeStations, Colonies, Wormholes, PlayerNo, ShipNo, ValidMoves):-
   get_piece_position(Ships, PlayerNo, ShipNo, Position),
   list_valid_moves(Board, Ships, TradeStations, Colonies, Wormholes, Position, ValidMoves).
-list_valid_moves(Board, Ships, TradeStations, Colonies, Wormholes, Position, ValidMoves):-
+list_valid_moves(Board, Ships, TradeStations, Colonies, Wormholes, Position, ValidMoves):- !,
   append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position,
   [northwest, northeast, east, southeast, southwest, west],
    ValidMoves), !.
