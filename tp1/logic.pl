@@ -79,7 +79,6 @@ is_move_to_wormhole(ShipPosition, Direction, Wormholes, InWormhole) :-
     list_find(Wormholes, NewPosition, 0, InWormhole).
 
 move_ship_if_valid(Board, Ships, TradeStations, Colonies, Wormholes, PlayerNo, ShipNo, ShipPosition, Direction, NumTiles, NewShips):-
-    notrace,
   is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, Direction, NumTiles, NumTiles),
   move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips).
 
@@ -222,10 +221,16 @@ move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlaye
     display_wormhole_exits(Wormholes, NumWormholes, InWormhole),
     select_wormhole_exit(NumWormholes, InWormhole, SelectedOutWormhole),
     number_to_wormhole(Wormholes,SelectedOutWormhole, OutWormhole),
-    NewShips = Ships.
+    %trace,
+    move_ship(Ships, OutWormhole, CurrentPlayer, ShipNo, west, 0, TmpShips),
+    %notrace,
+    display_ship_direction_info(ShipNo),
+    select_ship_direction(TmpDirection),
+    move_ship_if_valid(Board, TmpShips, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, OutWormhole, TmpDirection, 1, NewShips).
 
 move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole):-
     move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole).
 
 number_to_wormhole(Wormholes, SelectedOutWormhole, OutWormhole):-
-    list_get_nth(Wormholes, SelectedOutWormhole, OutWormhole).
+    N is SelectedOutWormhole - 1,
+    list_get_nth(Wormholes, N, OutWormhole).

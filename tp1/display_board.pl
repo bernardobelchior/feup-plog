@@ -315,17 +315,19 @@ display_wormhole_exits(Wormholes, NumWormholes, InWormhole) :-
 display_nth_wormhole_exit(-1, NumWormholes):-!.
 
 display_nth_wormhole_exit(N, NumWormholes) :-
-    N1 is NumWormholes - N,
-    write('Wormhole '), write(N1), nl,
+    N1 is NumWormholes - N + 1,
+    write(N1), write(' - Wormhole '), write(N1), nl,
     N2 is N-1,
     display_nth_wormhole_exit(N2, NumWormholes).
 
 select_wormhole_exit(NumWormholes, InWormhole, SelectedOutWormhole):-
-    read(SelectedOutWormhole), integer(SelectedOutWormhole),
-    SelectedOutWormhole \= InWormhole,
-    SelectedOutWormhole >= 0,
-    SelectedOutWormhole < NumWormholes.
+    read(ReadSelectedOutWormhole), integer(ReadSelectedOutWormhole),
+    I1 is InWormhole + 1,
+    ReadSelectedOutWormhole > 0,
+    ReadSelectedOutWormhole =< NumWormholes,
+    SelectedOutWormhole is ReadSelectedOutWormhole,
+    SelectedOutWormhole \= I1.
 
 select_wormhole_exit(NumWormholes, InWormhole, SelectedOutWormhole):-
-    write('Invalid wormhole. Try again.'),
+    write('Invalid movement. Try again.'),
     nl, fail.
