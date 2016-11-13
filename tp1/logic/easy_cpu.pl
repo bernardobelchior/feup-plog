@@ -22,10 +22,13 @@ easy_cpu_do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, _
 
 %Wormhole movement
 easy_cpu_move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, _NumPlayers, _NumShipsPerPlayer, CurrentPlayer, ShipNo, _ShipPosition, _Direction, NewShips, InWormhole):-
-    easy_cpu_select_wormhole_exit(NumWormholes, InWormhole, OutWormhole),
+    list_length(Wormholes,NumWormholes),
+    easy_cpu_select_wormhole_exit(Wormholes,NumWormholes, InWormhole, OutWormhole),
     move_ship(Ships, OutWormhole, CurrentPlayer, ShipNo, west, 0, TmpShips),
-    easy_cpu_select_ship_direction(TmpDirection),
-    move_ship_if_valid(Board, TmpShips, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, OutWormhole, TmpDirection, 1, NewShips).
+    easy_cpu_select_ship_direction(SelectedDirection),
+    number_to_direction(SelectedDirection,TmpDirection),
+    move_ship_if_valid(Board, TmpShips, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, OutWormhole, TmpDirection, 1, NewShips),
+    write(ShipNo), nl.
 
 move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole):-
     move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole).
@@ -42,28 +45,23 @@ easy_cpu_select_ship_action(Ships, PlayerNo, ShipNo, TradeStations, Colonies,  N
 %selectors
 easy_cpu_select_ship(NumShipsPerPlayer, ShipNo) :-
     N1 is NumShipsPerPlayer + 1,
-    random(1, N1,ShipNo),
-    write('CPU chose ship '), write(ShipNo), nl.
+    random(1, N1,ShipNo).
 
 easy_cpu_select_ship_direction(Direction) :-
-    random(1,7,Direction),
-    write('CPU chose direction '), write(Direction), nl.
+    random(1,7,Direction).
 
-easy_cpu_select_wormhole_exit(NumWormholes, InWormhole, OutWormhole) :-
-    N1 is NumWormholes),
+easy_cpu_select_wormhole_exit(Wormholes,NumWormholes, InWormhole, OutWormhole) :-
+    N1 is NumWormholes,
     random(0,N1,RandomOutWormhole),
     RandomOutWormhole \= InWormhole,
     SelectedOutWormhole is RandomOutWormhole,
-    write('CPU chose Wormhole '), write(SelectedOutWormhole), nl,
     list_get_nth(Wormholes, SelectedOutWormhole, OutWormhole).
 
-easy_cpu_select_wormhole_exit(NumWormholes, InWormhole, OutWormhole) :-
-    easy_cpu_select_wormhole_exit(NumWormholes, InWormhole, OutWormhole).
+easy_cpu_select_wormhole_exit(Wormholes,NumWormholes, InWormhole, OutWormhole) :-
+    easy_cpu_select_wormhole_exit(Wormholes,NumWormholes, InWormhole, OutWormhole).
 
 easy_cpu_select_action(Action) :-
-    random(0,2,Action),
-    write('CPU chose action '), write(Action), nl.
+    random(0,2,Action).
 
 easy_cpu_select_ship_num_tiles(NumTiles) :-
-    random(1,7, NumTiles),
-    write('CPU chose '), write(NumTiles), write( ' tiles'), nl.
+    random(1,7, NumTiles).

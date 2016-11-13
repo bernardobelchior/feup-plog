@@ -15,16 +15,28 @@ play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, 
   play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, 0).
 
 play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
-    CurrentPlayer = 0,
+  easy_cpu_select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
+  easy_cpu_select_ship_action(NewShips, CurrentPlayer, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
+  display_board(Board, NewShips, NewTradeStations, NewColonies),
+  nl, write('CPU moved ship '), write(ShipNo),nl,
+  write('A '), print_changes(TradeStations, NewTradeStations, Colonies, NewColonies), write(' was placed.'), nl,
+  write('Enter something to continue'),read(Buffer),
+  check_game_state(Board, NewShips, NewTradeStations, NewColonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
+/*    CurrentPlayer = 0,
   display_board(Board, Ships, TradeStations, Colonies),
   select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
   display_board(Board, NewShips, TradeStations, Colonies),
   select_ship_action(NewShips, CurrentPlayer, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
   check_game_state(Board, NewShips, NewTradeStations, NewColonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
+  */
 
 play(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
   easy_cpu_select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
   easy_cpu_select_ship_action(NewShips, CurrentPlayer, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
+  display_board(Board, NewShips, NewTradeStations, NewColonies),
+  nl, write('CPU moved ship '), write(ShipNo),nl,
+  write('A '), print_changes(TradeStations, NewTradeStations, Colonies, NewColonies), write(' was placed.'), nl,
+  write('Enter something to continue'),read(Buffer),
   check_game_state(Board, NewShips, NewTradeStations, NewColonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
 
 check_game_state(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
