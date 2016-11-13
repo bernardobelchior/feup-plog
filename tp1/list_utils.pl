@@ -36,3 +36,9 @@ list_get_last_line([Line], LastLine):-
   LastLine = Line.
 list_get_last_line([_Line | OtherLines], LastLine):-
   list_get_last_line(OtherLines, LastLine).
+
+list_find([X|Xs],X,Start,Start).
+list_find([X|Xs],Y,Start,N) :-
+    X \= Y,
+    S1 is Start + 1,
+    list_find(Xs,Y,S1,N).

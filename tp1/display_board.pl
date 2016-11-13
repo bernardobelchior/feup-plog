@@ -2,40 +2,51 @@
 :-include('list_utils.pl').
 
 start:-
-  initialize(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer),
-  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer).
+  initialize(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer),
+  play(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer).
 
-play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer):-
-  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, 0).
-play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
+play(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer):-
+  play(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, 0).
+
+play(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
   display_board(Board, Ships, TradeStations, Colonies),
-  select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
+  select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo),
   display_board(Board, NewShips, TradeStations, Colonies),
   select_ship_action(NewShips, CurrentPlayer, ShipNo, TradeStations, Colonies, NewTradeStations, NewColonies),
-  check_game_state(Board, NewShips, NewTradeStations, NewColonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
+  check_game_state(Board, NewShips, NewTradeStations, NewColonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer).
 
-check_game_state(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
-  is_game_over(Board, Ships, TradeStations, Colonies),
+check_game_state(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer):-
+  is_game_over(Board, Ships, TradeStations, Colonies, Wormholes),
   game_over(Board, Ships, TradeStations, Colonies);
   next_player(NumPlayers, CurrentPlayer, NextPlayer),
-  play(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, NextPlayer).
+  play(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, NextPlayer).
 
 game_over(_Board, _Ships, _TradeStations, _Colonies):-
   write('Fim do jogo'), nl.
 
-select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo):-
+select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo):-
   display_player_info(CurrentPlayer, NumShipsPerPlayer),
   display_ship_selection_menu(NumShipsPerPlayer),
   select_ship(NumShipsPerPlayer, ShipNo),
   display_ship_direction_info(ShipNo),
   select_ship_direction(Direction),
-  display_ship_num_tiles_info,
-  select_ship_num_tiles(NumTiles),
-  move_ship_if_valid(Board, Ships, TradeStations, Colonies, CurrentPlayer, ShipNo, Direction, NumTiles, NewShips),
-  SelectedShipNo = ShipNo;
+  get_piece_position(Ships, CurrentPlayer, ShipNo, ShipPosition),
+  do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips).
+
+ select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, ShipNo) :-
   display_board(Board, Ships, TradeStations, Colonies),
   write('Invalid movement. Try again.'), nl,
-  select_ship_movement(Board, Ships, TradeStations, Colonies, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo).
+  select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, NewShips, SelectedShipNo).
+
+do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips):-
+    is_move_to_wormhole(ShipPosition, Direction, Wormholes, InWormhole),
+    move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole).
+
+do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips):-
+  display_ship_num_tiles_info,
+  select_ship_num_tiles(NumTiles),
+  move_ship_if_valid(Board, Ships, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, ShipPosition, Direction, NumTiles, NewShips).
+
 
 display_ship_num_tiles_info:-
   write('How many tiles would you like to move in the chosen direction?'), nl.
@@ -325,3 +336,30 @@ convert_number_to_action(2, colony).
 
 display_action_info:-
   write('Choose action: '),nl,write('1 - Place a trade station.'), nl,write('2 - Place a colony'),nl.
+
+
+display_wormhole_exits(Wormholes, NumWormholes, InWormhole) :-
+    write('Choose an exit Wormhole: '),nl,
+    list_length(Wormholes, NumWormholes),
+    N is NumWormholes - 1,
+    display_nth_wormhole_exit(N, N).
+
+display_nth_wormhole_exit(-1, NumWormholes):-!.
+
+display_nth_wormhole_exit(N, NumWormholes) :-
+    N1 is NumWormholes - N + 1,
+    write(N1), write(' - Wormhole '), write(N1), nl,
+    N2 is N-1,
+    display_nth_wormhole_exit(N2, NumWormholes).
+
+select_wormhole_exit(NumWormholes, InWormhole, SelectedOutWormhole):-
+    read(ReadSelectedOutWormhole), integer(ReadSelectedOutWormhole),
+    I1 is InWormhole + 1,
+    ReadSelectedOutWormhole > 0,
+    ReadSelectedOutWormhole =< NumWormholes,
+    SelectedOutWormhole is ReadSelectedOutWormhole,
+    SelectedOutWormhole \= I1.
+
+select_wormhole_exit(NumWormholes, InWormhole, SelectedOutWormhole):-
+    write('Invalid movement. Try again.'),
+    nl, fail.
