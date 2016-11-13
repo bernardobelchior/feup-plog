@@ -61,6 +61,14 @@ move_ship_if_valid(Board, Ships, TradeStations, Colonies, Wormholes, PlayerNo, S
   is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, Direction, NumTiles, NumTiles),
   move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips).
 
+change_piece_position(PieceList, PlayerNo, PieceNo, NewPiecePosition, NewPieceList):-
+  list_get_nth(PieceList, PlayerNo, PlayerPieces),
+  list_replace_nth(PlayerPieces, PieceNo, NewPiecePosition, NewPlayerPieces),
+  list_replace_nth(PieceList, PlayerNo, NewPlayerPieces, NewPieceList).
+
+move_ship(Ships, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
+  get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
+  move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips).
 move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
   update_position(ShipPosition, Direction, NumTiles, NewShipPosition),
   list_get_nth(Ships, PlayerNo, PlayerShips),
@@ -69,13 +77,22 @@ move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips):
 
 % TotalNumTiles must be bigger than one in order to allow checking for wormholes
 is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction):-
-  is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction, 1, 2).
+  is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction, 1, 0).
 
 is_move_valid(_Board, _Ships, _TradeStations, _Colonies, _Wormholes, _Position, _Direction, 0, _TotalNumTiles).
+is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction, 1, 1).
+  update_position(Position, Direction, 1, NewPosition),
+  get_tile_in_position(Board, NewPosition, Tile), !, % Cut needed in order to prevent backtracking
+  is_tile_passable(Tile, Board, Ships, TradeStations, Colonies, Wormholes, NewPosition),
+  is_tile_unoccupied(Ships, NewPosition),
+  is_tile_unoccupied(TradeStations, NewPosition),
+  is_tile_unoccupied(Colonies, NewPosition),
+  NewNumTiles is NumTiles - 1,
+  is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, NewPosition, Direction, NewNumTiles, TotalNumTiles).
 is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction, NumTiles, TotalNumTiles):-
   update_position(Position, Direction, 1, NewPosition),
   get_tile_in_position(Board, NewPosition, Tile), !, % Cut needed in order to prevent backtracking
-  is_tile_passable(Tile),
+  is_tile_passable(Tile, Board, Ships, TradeStations, Colonies, Wormholes, NewPosition),
   is_tile_unoccupied(Ships, NewPosition),
   is_tile_unoccupied(TradeStations, NewPosition),
   is_tile_unoccupied(Colonies, NewPosition),
@@ -135,14 +152,33 @@ place_colony(PlayerNo,ShipPosition, Colonies, NewColonies) :-
   list_append(PlayerColonies, NewShipPosition, NewPlayerColonies),
   list_replace_nth(Colonies,PlayerNo, NewPlayerColonies, NewColonies).
 
+can_move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, InWormhole):-
+  list_delete_nth(Wormholes, InWormhole, OutWormholes),
+  can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, OutWormholes).
+
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition, northwest).
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition, northeast).
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition, east).
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition, southeast).
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition, southwest).
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition, west).
+can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, [WormholePosition | Others]):-
+  can_move_out_of_wormholes(Board, Ships, TradeStations, Colonies, Wormholes, Others).
+
 move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, _NumPlayers, _NumShipsPerPlayer, CurrentPlayer, ShipNo, _ShipPosition, _Direction, NewShips, InWormhole):-
   display_wormhole_exits(Wormholes, NumWormholes, InWormhole),
   select_wormhole_exit(NumWormholes, InWormhole, SelectedOutWormhole),
-  number_to_wormhole(Wormholes,SelectedOutWormhole, OutWormhole),
-  move_ship(Ships, OutWormhole, CurrentPlayer, ShipNo, west, 0, TmpShips),
-  display_ship_direction_info(ShipNo),
-  select_ship_direction(TmpDirection),
-  move_ship_if_valid(Board, TmpShips, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, OutWormhole, TmpDirection, 1, NewShips).
+  number_to_wormhole(Wormholes,SelectedOutWormhole, OutWormholePosition),
+  list_valid_moves(Board, Ships, TradeStations, Colonies, Wormholes, OutWormholePosition, ValidDirections),
+  display_ship_direction_info(ShipNo, ValidDirections),
+  select_ship_direction(TmpDirection, ValidDirections),
+  move_ship(Ships, OutWormholePosition, CurrentPlayer, ShipNo, TmpDirection, 1, NewShips).
 
 move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole):-
   move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole).
@@ -152,7 +188,9 @@ number_to_wormhole(Wormholes, SelectedOutWormhole, OutWormhole):-
   list_get_nth(Wormholes, N, OutWormhole).
 
 list_valid_moves(Board, Ships, TradeStations, Colonies, Wormholes, PlayerNo, ShipNo, ValidMoves):-
-  get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition),
-  append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition,
+  get_piece_position(Ships, PlayerNo, ShipNo, Position),
+  list_valid_moves(Board, Ships, TradeStations, Colonies, Wormholes, Position, ValidMoves).
+list_valid_moves(Board, Ships, TradeStations, Colonies, Wormholes, Position, ValidMoves):-
+  append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position,
   [northwest, northeast, east, southeast, southwest, west],
    ValidMoves), !.

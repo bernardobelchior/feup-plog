@@ -99,8 +99,7 @@ convert_number_to_action(1, tradeStation).
 convert_number_to_action(2, colony).
 
 display_action_info:-
-  write('Choose action: '),nl,write('1 - Place a trade station.'), nl,write('2 - Place a colony'),nl.
-
+  write('Choose action: '), nl, write('1 - Place a trade station.'), nl, write('2 - Place a colony'), nl.
 
 display_wormhole_exits(Wormholes, NumWormholes, _InWormhole) :-
     write('Choose an exit Wormhole: '),nl,
@@ -127,17 +126,3 @@ select_wormhole_exit(NumWormholes, InWormhole, SelectedOutWormhole):-
 select_wormhole_exit(_NumWormholes, _InWormhole, _SelectedOutWormhole):-
     write('Invalid movement. Try again.'),
     nl, fail.
-
-number_to_direction(1, northwest).
-number_to_direction(2, northeast).
-number_to_direction(3, east).
-number_to_direction(4, southeast).
-number_to_direction(5, southwest).
-number_to_direction(6, west).
-
-direction_to_string(northwest, 'Northwest').
-direction_to_string(northeast, 'Northeast').
-direction_to_string(east, 'East').
-direction_to_string(southeast, 'Southeast').
-direction_to_string(southwest, 'Southwest').
-direction_to_string(west, 'West').

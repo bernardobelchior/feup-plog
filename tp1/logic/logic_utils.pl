@@ -34,13 +34,16 @@ get_piece_number_in_position([FirstPiecePosition | OtherPieces], Position, Piece
 get_tile_in_position(Board, [X , Y], Tile):-
   list_get_xy(Board, X, Y, Tile).
 
-is_tile_passable(system0).
-is_tile_passable(system1).
-is_tile_passable(system2).
-is_tile_passable(system3).
-is_tile_passable(greenNebula).
-is_tile_passable(redNebula).
-is_tile_passable(blueNebula).
+is_tile_passable(system0, _, _, _, _, _, _).
+is_tile_passable(system1, _, _, _, _, _, _).
+is_tile_passable(system2, _, _, _, _, _, _).
+is_tile_passable(system3, _, _, _, _, _, _).
+is_tile_passable(greenNebula, _, _, _, _, _, _).
+is_tile_passable(redNebula, _, _, _, _, _, _).
+is_tile_passable(blueNebula, _, _, _, _, _, _).
+is_tile_passable(wormhole, Board, Ships, TradeStations, Colonies, Wormholes, WormholePosition):-
+  list_find(Wormholes, WormholePosition, 0, WormholeNo),
+  can_move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, WormholeNo).
 
 is_tile_unoccupied([], _Position).
 is_tile_unoccupied([PlayerPieces | OtherPlayersPieces], Position):-
@@ -89,7 +92,7 @@ player_has_colonies(PlayerColonies) :-
   list_length(PlayerColonies, NumColonies),
   NumColonies < 4.
 
-append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, [], []).
-append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, [Direction | Others], ValidMoves):-
-  append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, Others, NewValidMoves),
-  list_append_if_true(NewValidMoves, is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, Direction), [Direction], ValidMoves).
+append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, [], []).
+append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, [Direction | Others], ValidMoves):-
+  append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Others, NewValidMoves),
+  list_append_if_true(NewValidMoves, is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction), [Direction], ValidMoves).
