@@ -11,40 +11,38 @@ create_board(Board):-
   [space, system1, system3, redNebula, wormhole, system0, system1, system1, null, null, null], %8
   [space, space, space, system1, blueNebula, system0, system2, null, null, null, null]]. %9
 
-test_game_over:-
-  create_board(Board),
-  create_players(Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer),
-  game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers).
-
-create_players(Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer):-
+create_players(Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer):-
   Ships = [
   [[3,2], [4,2], [5,1]],
   [[6,8], [7,8], [5,9]]
   ],
   TradeStations = [
-  [[2, 4], [2, 5], [1, 8]], %3 + 0 + 1
-  [[4, 6]] % 0 1GN
+  [],
+  []
   ],
   Colonies = [
-  [[4, 9]], % 2
-  [[3, 7], [6, 1]] % 5 1GN
+  [],
+  []
   ],
   HomeSystems = [
   [[4, 1], [5, 1], [3, 2], [4, 2]],
   [[6, 8], [7, 8], [5, 9], [6, 9]]
   ],
+  Wormholes = [
+  [8,3],[3,4],[4,8]
+  ],
   NumPlayers = 2,
   NumShipsPerPlayer = 3.
 
-initialize(Board, Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer):-
+initialize(Board, Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer):-
   create_board(Board),
-  create_players(Ships, TradeStations, Colonies, HomeSystems, NumPlayers, NumShipsPerPlayer).
+  create_players(Ships, TradeStations, Colonies, HomeSystems, Wormholes, NumPlayers, NumShipsPerPlayer).
 
-%FIXME: Missing tie breakers.
+
 game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers):-
   game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers, 0, 0, 0).
 
-game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers, BestPlayerNo, BestPlayerPoints, NumPlayers):-
+game_over(_Board, _TradeStations, _Colonies, _HomeSystems, NumPlayers, BestPlayerNo, BestPlayerPoints, NumPlayers):-
   ActualPlayerNo is BestPlayerNo + 1,
   write('Player '), write(ActualPlayerNo), write(' won with '), write(BestPlayerPoints), write(' points!'), nl.
 
@@ -54,30 +52,59 @@ game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers, PlayerNo, Pla
   who_has_max(PlayerNo, PlayerPoints, CurrentPlayer, NewPlayerPoints, BestPlayerNo, BestPlayerPoints),
   game_over(Board, TradeStations, Colonies, HomeSystems, NumPlayers, BestPlayerNo, BestPlayerPoints, NewPlayerNo).
 
-%who_has_max(_Player1No, Player1Points, _Player2No, Player1Points, _BestPlayerNo, _BestPlayerPoints):-
-  %fail.
-who_has_max(Player1No, Player1Points, Player2No, Player2Points, BestPlayerNo, BestPlayerPoints):-
+
+who_has_max(Player1No, Player1Points, _Player2No, Player2Points, BestPlayerNo, BestPlayerPoints):-
   Player1Points > Player2Points,
   BestPlayerNo = Player1No,
   BestPlayerPoints = Player1Points.
-who_has_max(Player1No, Player1Points, Player2No, Player2Points, Player2No, Player2Points).
+who_has_max(_Player1No, _Player1Points, Player2No, Player2Points, Player2No, Player2Points).
 
 calculate_points(Board, TradeStations, Colonies, HomeSystems, PlayerNo, NewPlayerPoints):-
   list_get_nth(TradeStations, PlayerNo, PlayerTradeStations),
   list_get_nth(Colonies, PlayerNo, PlayerColonies),
-  list_get_nth(HomeSystems, PlayerNo, PlayerHomeSystems),
   calculate_control_points(Board, PlayerTradeStations, TradeStationsControlPoints, TSGreenNebulasControlled, TSBlueNebulasControlled, TSRedNebulasControlled),
   calculate_control_points(Board, PlayerColonies, ColoniesControlPoints, CGreenNebulasControlled, CBlueNebulasControlled, CRedNebulasControlled),
-  %FIXME: missing adjacent
+  list_delete_nth(TradeStations, PlayerNo, OtherTradeStations),
+  list_delete_nth(Colonies, PlayerNo, OtherColonies),
+  list_delete_nth(HomeSystems, PlayerNo, OtherHomeSystems),
+  calculate_adjacency_points(PlayerTradeStations, OtherTradeStations, OtherColonies, OtherHomeSystems, AdjacencyPoints),
   GreenNebulasControlled is TSGreenNebulasControlled + CGreenNebulasControlled,
   BlueNebulasControlled is TSBlueNebulasControlled + CBlueNebulasControlled,
   RedNebulasControlled is TSRedNebulasControlled + CRedNebulasControlled,
   get_points_from_nebulas(Board, GreenNebulasControlled, GreenNebulaPoints),
   get_points_from_nebulas(Board, BlueNebulasControlled, BlueNebulaPoints),
   get_points_from_nebulas(Board, RedNebulasControlled, RedNebulaPoints),
-  NewPlayerPoints is TradeStationsControlPoints + ColoniesControlPoints + GreenNebulaPoints + BlueNebulaPoints + RedNebulaPoints.
+  NewPlayerPoints is TradeStationsControlPoints + ColoniesControlPoints + AdjacencyPoints + GreenNebulaPoints + BlueNebulaPoints + RedNebulaPoints.
 
-calculate_control_points(Board, [], 0, 0, 0, 0).
+calculate_adjacency_points([], _OtherTradeStations, _OtherColonies, _OtherHomeSystems, 0).
+
+calculate_adjacency_points([TradeStation | Rest], OtherTradeStations, OtherColonies, OtherHomeSystems, AdjacencyPoints):-
+  calculate_adjacency_points_for_station(TradeStation, west, OtherTradeStations, OtherColonies, OtherHomeSystems, WPoints),
+  calculate_adjacency_points_for_station(TradeStation, northwest, OtherTradeStations, OtherColonies, OtherHomeSystems, NWPoints),
+  calculate_adjacency_points_for_station(TradeStation, northeast, OtherTradeStations, OtherColonies, OtherHomeSystems, NEPoints),
+  calculate_adjacency_points_for_station(TradeStation, east, OtherTradeStations, OtherColonies, OtherHomeSystems, EPoints),
+  calculate_adjacency_points_for_station(TradeStation, southeast, OtherTradeStations, OtherColonies, OtherHomeSystems, SEPoints),
+  calculate_adjacency_points_for_station(TradeStation, southwest, OtherTradeStations, OtherColonies, OtherHomeSystems, SWPoints),
+  calculate_adjacency_points(Rest, OtherTradeStations, OtherColonies, OtherHomeSystems, NextTSAdjacencyPoints),
+  AdjacencyPoints is NextTSAdjacencyPoints + WPoints + NWPoints + NEPoints + EPoints + SEPoints + SWPoints.
+
+calculate_adjacency_points_for_station(TradeStation, Direction, OtherTradeStations, OtherColonies, OtherHomeSystems, DirectionPoints):-
+  update_position(TradeStation, Direction, 1, Position),
+  position_has_piece_of_any_type(Position, OtherTradeStations, OtherColonies, OtherHomeSystems),
+  DirectionPoints = 1.
+calculate_adjacency_points_for_station(_TradeStation, _Direction, _OtherTradeStations, _OtherColonies, _OtherHomeSystems, 0).
+
+position_has_piece_of_any_type(Position, TradeStations, Colonies, HomeSystems):-
+    position_has_piece_of_type(TradeStations, Position);
+    position_has_piece_of_type(Colonies, Position);
+    position_has_piece_of_type(HomeSystems, Position).
+
+position_has_piece_of_type([], _Position):- fail.
+position_has_piece_of_type([PlayerPieces | OtherPieces], Position):-
+  position_has_piece(PlayerPieces, Position);
+  position_has_piece_of_type(OtherPieces, Position).
+
+calculate_control_points(_Board, [], 0, 0, 0, 0).
 calculate_control_points(Board, [[X, Y] | OtherPieces], ControlPoints, GreenNebulasControlled, BlueNebulasControlled, RedNebulasControlled):-
   list_get_xy(Board, X, Y, Tile),
   get_points_from_tile(Tile, Points, NewGreenNebulasControlled, NewBlueNebulasControlled, NewRedNebulasControlled),
@@ -143,9 +170,13 @@ get_tile_in_position(Board, [X , Y], Tile):-
 %checks if a direction is valid, X and Y are the distances in X and Y that will be traveled
 valid_direction(X,Y) :- (X \= 0; Y\=0), ((X \= 0, Y = 0); (X = 0, Y \= 0); (X = -Y)).
 
-move_ship_if_valid(Board, Ships, TradeStations, Colonies, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
-  get_piece_position(Ships, PlayerNo, ShipNo, ShipPosition), !, %Needed in order to prevent backtracking
-  is_move_valid(Board, Ships, TradeStations, Colonies, ShipPosition, Direction, NumTiles, NumTiles),
+%is_move_to_wormhole(+ShipPosition, +Direction, +NumTiles, +Wormholes, -InWormhole)
+is_move_to_wormhole(ShipPosition, Direction, Wormholes, InWormhole) :-
+    update_position(ShipPosition, Direction, 1, NewPosition),
+    list_find(Wormholes, NewPosition, 0, InWormhole).
+
+move_ship_if_valid(Board, Ships, TradeStations, Colonies, Wormholes, PlayerNo, ShipNo, ShipPosition, Direction, NumTiles, NewShips):-
+  is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, Direction, NumTiles, NumTiles),
   move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips).
 
 move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips):-
@@ -155,13 +186,13 @@ move_ship(Ships, ShipPosition, PlayerNo, ShipNo, Direction, NumTiles, NewShips):
   list_replace_nth(Ships, PlayerNo, NewPlayerShips, NewShips).
 
 % TotalNumTiles must be bigger than one in order to allow checking for wormholes
-is_direction_valid(Board, Ships, TradeStations, Colonies, Position, Direction):-
-  is_move_valid(Board, Ships, TradeStations, Colonies, Position, Direction, 1, 2).
+is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction):-
+  is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction, 1, 2).
 
 %is_move_valid(Board, Position, Direction, NumTiles):-
   %is_move_valid(Board, Position, Direction, NumTiles, NumTiles).
-is_move_valid(_Board, _Ships, _TradeStations, _Colonies, _Position, _Direction, 0, _TotalNumTiles).
-is_move_valid(Board, Ships, TradeStations, Colonies, Position, Direction, NumTiles, TotalNumTiles):-
+is_move_valid(_Board, _Ships, _TradeStations, _Colonies, _Wormholes, _Position, _Direction, 0, _TotalNumTiles).
+is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, Position, Direction, NumTiles, TotalNumTiles):-
   update_position(Position, Direction, 1, NewPosition),
   get_tile_in_position(Board, NewPosition, Tile), !, % Cut needed in order to prevent backtracking
   is_tile_passable(Tile),
@@ -169,7 +200,7 @@ is_move_valid(Board, Ships, TradeStations, Colonies, Position, Direction, NumTil
   is_tile_unoccupied(TradeStations, NewPosition),
   is_tile_unoccupied(Colonies, NewPosition),
   NewNumTiles is NumTiles - 1,
-  is_move_valid(Board, Ships, TradeStations, Colonies, NewPosition, Direction, NewNumTiles, TotalNumTiles).
+  is_move_valid(Board, Ships, TradeStations, Colonies, Wormholes, NewPosition, Direction, NewNumTiles, TotalNumTiles).
 
 is_tile_passable(system0).
 is_tile_passable(system1).
@@ -178,10 +209,6 @@ is_tile_passable(system3).
 is_tile_passable(greenNebula).
 is_tile_passable(redNebula).
 is_tile_passable(blueNebula).
-% FIXME: Currently wormhole are impassable, but they are passable if they meet
-% certain requirements
-%is_tile_passable(wormhole, Position, Direction, TotalNumTiles):-
-  %TotalNumTiles is 1,
 
 is_tile_unoccupied([], _Position).
 is_tile_unoccupied([PlayerPieces | OtherPlayersPieces], Position):-
@@ -193,25 +220,25 @@ position_has_piece([Piece | OtherPieces], Position):-
   equal_position(Piece, Position);
   position_has_piece(OtherPieces, Position).
 
-is_ship_movable(Board, Ships, TradeStations, Colonies, Ship):-
-  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, northwest), !,
-  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, northeast), !,
-  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, east), !,
-  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, southeast), !,
-  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, southwest), !,
-  is_direction_valid(Board, Ships, TradeStations, Colonies, Ship, west), !.
+is_ship_movable(Board, Ships, TradeStations, Colonies, Wormholes, Ship):-
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Ship, northwest), !,
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Ship, northeast), !,
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Ship, east), !,
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Ship, southeast), !,
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Ship, southwest), !,
+  is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, Ship, west), !.
 
-are_player_ships_movable(_Board, _Ships, _TradeStations, _Colonies, []).
-are_player_ships_movable(Board, Ships, TradeStations, Colonies, [Ship | OtherShips]):-
-  is_ship_movable(Board, Ships, TradeStations, Colonies, Ship);
-  are_player_ships_movable(Board, Ships, TradeStations, Colonies, OtherShips).
+are_player_ships_movable(_Board, _Ships, _TradeStations, _Colonies, _Wormholes, []).
+are_player_ships_movable(Board, Ships, TradeStations, Colonies, Wormholes, [Ship | OtherShips]):-
+  is_ship_movable(Board, Ships, TradeStations, Colonies, Wormholes, Ship);
+  are_player_ships_movable(Board, Ships, TradeStations, Colonies, Wormholes, OtherShips).
 
-is_game_over(_Board, [], _TradeStations, _Colonies).
-is_game_over(Board, [PlayerShips | OtherShips], [PlayerTradeStations | OtherTradeStations], [PlayerColonies | OtherColonies]):-
-  are_player_ships_movable(Board, [PlayerShips | OtherShips], [PlayerTradeStations | OtherTradeStations], [PlayerColonies | OtherColonies], PlayerShips),
+is_game_over(_Board, [], _TradeStations, _Colonies, _Wormholes).
+is_game_over(Board, [PlayerShips | OtherShips], [PlayerTradeStations | OtherTradeStations], [PlayerColonies | OtherColonies], Wormholes):-
+  are_player_ships_movable(Board, [PlayerShips | OtherShips], [PlayerTradeStations | OtherTradeStations], [PlayerColonies | OtherColonies], Wormholes, PlayerShips),
   not(player_has_trade_stations(PlayerTradeStations)),
   not(player_has_colonies(PlayerColonies)),
-  is_game_over(Board, OtherShips, OtherTradeStations, OtherColonies).
+  is_game_over(Board, OtherShips, OtherTradeStations, OtherColonies, Wormholes).
 
 not(Execute):-Execute, !, fail.
 not(_Execute).
@@ -286,3 +313,21 @@ place_colony(PlayerNo,ShipPosition, Colonies, NewColonies) :-
     NewShipPosition = [ShipPosition],
     list_append(PlayerColonies, NewShipPosition, NewPlayerColonies),
     list_replace_nth(Colonies,PlayerNo, NewPlayerColonies, NewColonies).
+
+move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, _NumPlayers, _NumShipsPerPlayer, CurrentPlayer, ShipNo, _ShipPosition, _Direction, NewShips, InWormhole):-
+    display_wormhole_exits(Wormholes, NumWormholes, InWormhole),
+    select_wormhole_exit(NumWormholes, InWormhole, SelectedOutWormhole),
+    number_to_wormhole(Wormholes,SelectedOutWormhole, OutWormhole),
+    %trace,
+    move_ship(Ships, OutWormhole, CurrentPlayer, ShipNo, west, 0, TmpShips),
+    %notrace,
+    display_ship_direction_info(ShipNo),
+    select_ship_direction(TmpDirection),
+    move_ship_if_valid(Board, TmpShips, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, OutWormhole, TmpDirection, 1, NewShips).
+
+move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole):-
+    move_through_wormhole(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips, InWormhole).
+
+number_to_wormhole(Wormholes, SelectedOutWormhole, OutWormhole):-
+    N is SelectedOutWormhole - 1,
+    list_get_nth(Wormholes, N, OutWormhole).
