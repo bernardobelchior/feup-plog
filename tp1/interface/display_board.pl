@@ -210,5 +210,5 @@ print_changes(TradeStations, NewTradeStations, Colonies, NewColonies) :-
     Colonies \= NewColonies,
     write('Colony').
 
-print_changes(TradeStations, NewTradeStations, Colonies, NewColonies) :-
+print_changes(_TradeStations, _NewTradeStations, _Colonies, _NewColonies) :-
     write('Trade Station').
