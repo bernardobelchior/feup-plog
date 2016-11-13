@@ -82,9 +82,14 @@ update_position([X,Y], west, NumTiles, NewPosition):-
   NewPosition = [NewX, Y].
 
 player_has_trade_stations(PlayerTradeStations) :-
-    list_length(PlayerTradeStations, NumTradeStations),
-    NumTradeStations < 16.
+  list_length(PlayerTradeStations, NumTradeStations),
+  NumTradeStations < 16.
 
 player_has_colonies(PlayerColonies) :-
-    list_length(PlayerColonies, NumColonies),
-    NumColonies < 4.
+  list_length(PlayerColonies, NumColonies),
+  NumColonies < 4.
+
+append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, [], []).
+append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, [Direction | Others], ValidMoves):-
+  append_if_direction_is_valid(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, Others, NewValidMoves),
+  list_append_if_true(NewValidMoves, is_direction_valid(Board, Ships, TradeStations, Colonies, Wormholes, ShipPosition, Direction), [Direction], ValidMoves).

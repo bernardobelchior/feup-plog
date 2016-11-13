@@ -39,6 +39,11 @@ list_get_last_line([_Line | OtherLines], LastLine):-
 
 list_find([X|_Xs],X,Start,Start).
 list_find([X|Xs],Y,Start,N) :-
-    X \= Y,
-    S1 is Start + 1,
-    list_find(Xs,Y,S1,N).
+  X \= Y,
+  S1 is Start + 1,
+  list_find(Xs,Y,S1,N).
+
+list_append_if_true(List, Execute, ToAppend, OutList):-
+  Execute,
+  list_append(List, ToAppend, OutList).
+list_append_if_true(List, _Execute, _ToAppend, List).

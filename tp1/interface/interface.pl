@@ -2,8 +2,9 @@ select_ship_movement(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayer
   display_player_info(CurrentPlayer, NumShipsPerPlayer),
   display_ship_selection_menu(NumShipsPerPlayer),
   select_ship(NumShipsPerPlayer, ShipNo),
-  display_ship_direction_info(ShipNo),
-  select_ship_direction(Direction),
+  list_valid_moves(Board, Ships, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, ValidDirections),
+  display_ship_direction_info(ShipNo, ValidDirections),
+  select_ship_direction(Direction, ValidDirections),
   get_piece_position(Ships, CurrentPlayer, ShipNo, ShipPosition),
   do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, NumPlayers, NumShipsPerPlayer, CurrentPlayer, ShipNo, ShipPosition, Direction, NewShips).
 
@@ -21,7 +22,6 @@ do_appropriate_move(Board, Ships, TradeStations, Colonies, Wormholes, _NumPlayer
   select_ship_num_tiles(NumTiles),
   move_ship_if_valid(Board, Ships, TradeStations, Colonies, Wormholes, CurrentPlayer, ShipNo, ShipPosition, Direction, NumTiles, NewShips).
 
-
 display_ship_num_tiles_info:-
   write('How many tiles would you like to move in the chosen direction?'), nl.
 
@@ -31,24 +31,27 @@ select_ship_num_tiles(NumTiles):-
   ReadNumTiles > 0,
   NumTiles = ReadNumTiles. %check if valid
 
-display_ship_direction_info(ShipNo):-
+display_ship_direction_info(ShipNo, ValidDirections):-
   NewShipNo is ShipNo + 1,
   write('Ship '), write(NewShipNo),
   write(' can move in the following directions:'), nl,
-  write('1 - Northwest'), nl,
-  write('2 - Northeast'), nl,
-  write('3 - East'), nl,
-  write('4 - Southeast'), nl,
-  write('5 - Southwest'), nl,
-  write('6 - West'), nl,
+  print_possible_directions(ValidDirections),
   write('Please choose one: ').
 
-select_ship_direction(Direction):-
+print_possible_directions([]).
+print_possible_directions([Direction | Others]):-
+  print_possible_directions(Others),
+  number_to_direction(Number, Direction),
+  direction_to_string(Direction, String),
+  write(Number) , write(' - '), write(String), nl.
+
+select_ship_direction(Direction, ValidDirections):-
   read(ReadDirection),
   integer(ReadDirection),
   ReadDirection =< 6,
   ReadDirection > 0,
-  number_to_direction(ReadDirection, Direction).
+  number_to_direction(ReadDirection, Direction),
+  list_find(ValidDirections, Direction, 0, _Found).
 
 display_player_info(PlayerNo, NumShipsPerPlayer):-
   write('It is Player '),
@@ -125,10 +128,16 @@ select_wormhole_exit(_NumWormholes, _InWormhole, _SelectedOutWormhole):-
     write('Invalid movement. Try again.'),
     nl, fail.
 
-
 number_to_direction(1, northwest).
 number_to_direction(2, northeast).
 number_to_direction(3, east).
 number_to_direction(4, southeast).
 number_to_direction(5, southwest).
 number_to_direction(6, west).
+
+direction_to_string(northwest, 'Northwest').
+direction_to_string(northeast, 'Northeast').
+direction_to_string(east, 'East').
+direction_to_string(southeast, 'Southeast').
+direction_to_string(southwest, 'Southwest').
+direction_to_string(west, 'West').
