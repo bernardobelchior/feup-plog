@@ -1,5 +1,6 @@
 :-use_module(library(lists)).
 :-include('interface.pl').
+:-include('logic.pl').
 
 board(Board, Size):-
 Board = [
