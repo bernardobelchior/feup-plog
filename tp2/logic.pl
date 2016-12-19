@@ -1,53 +1,40 @@
 :-use_module(library(clpfd)).
 
-% initialize_matrix(-Size, -Board)
-initialize_matrix(Size, Board):-
-  initialize_matrix(Size, Size, Board).
-initialize_matrix(Size, 1, []).
-initialize_matrix(Size, TmpSize, Board):-
-  NewSize is TmpSize - 1,
-  initialize_matrix(Size, NewSize, NewBoard),
-  initialize_line(Size, Line),
-  append(NewBoard, [Line], Board).
+% initialize_matrix(+Board, -SolvedBoard).
+initialize_matrix([], Size, []).
+initialize_matrix([B | Bs], Size, [S | Ss]):-
+    initialize_line(B, Size, S),
+    initialize_matrix(Bs, Size, Ss).
 
-initialize_line(Size, Line):-
-  length(Line, Size),
-  domain(Line, 0, Size).
+% initialize_line(BoardLine, SolvedBoardLine).
+initialize_line([], _, []).
+initialize_line([E | Es], Size, [S | Ss]):-
+  MaxNumber is Size * Size,
+  S in (E..E) \/ (Size..MaxNumber),
+  initialize_line(Es, Size, Ss).
 
-create_values([Size], Size).
-create_values([Value | Rest], Size):-
-  NewSize is Size - 1,
-  create_values(Rest, NewSize),
-  Value is Size.
 
-set_value(1, Value, Value-1).
-
-set_cardinality(Size, _, List):-
-  length(Values, Size),
-  create_values(Values, Size),
-  length(Count, Size),
-  maplist(set_value(1), Values, Count),
-  global_cardinality(Values, Count).
+% no_sequential_zeros(+Size, +List).
+no_sequential_blacks(_, [_]).
+no_sequential_blacks(Size, [E1, E2 | Rest]):-
+  E1 #>= Size #=> E2 #< Size,
+  no_sequential_blacks(Size, [E2 | Rest]).
+no_sequential_blacks(Size, [E1, E2 | Rest]):-
+  E2 #>= Size #=> E1 #< Size,
+  no_sequential_blacks(Size, [E2 | Rest]).
 
 % solve(+Board, +Size, -SolvedBoard)
 solve(Board, Size, SolvedBoard):-
-  initialize_matrix(Size, SolvedBoard),
+  initialize_matrix(Board, Size, SolvedBoard),
 
-  maplist(set_cardinality(Size), SolvedBoard, SolvedBoard),
   transpose(SolvedBoard, TransposedBoard),
-  maplist(set_cardinality(Size), TransposedBoard, TransposedBoard),
-%trace,
-  %maplist(three_equals_in_a_row, Board, SolvedBoard),
-
-%  no_duplicate_number_in_line(Board),
-  %transpose(Board, TransposedBoard),
-  %no_duplicate_number_in_line(TransposedBoard),
-
-  labeling([], SolvedBoard).
-
-
-
-%no_duplicate_number_in_line([Line, Rest]):-
+  %trace,
+  %maplist(no_sequential_blacks(Size), SolvedBoard),
+  %maplist(no_sequential_blacks(Size), TransposedBoard),
+  %notrace,
+  maplist(all_distinct, SolvedBoard),
+  maplist(all_distinct, TransposedBoard),
+  maplist(labeling([]), SolvedBoard).
 
 
 three_equals_in_a_row([_, _], [_, _]).
