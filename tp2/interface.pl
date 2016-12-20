@@ -7,7 +7,7 @@ print_line(Size, Line):-
   nl.
 
 print_number(Size, Number):-
-  Number >= Size,
+  Number > Size,
   write(' |').
 print_number(_, Number):-
   write(Number), write('|').

@@ -2,7 +2,7 @@
 :-include('interface.pl').
 :-include('logic.pl').
 
-/*board(Board, Size):-
+board(Board, Size):-
 Board = [
     [ 4, 8, 1, 6, 3, 2, 5, 7 ],
     [ 3, 6, 7, 2, 1, 6, 5, 4 ],
@@ -13,9 +13,9 @@ Board = [
     [ 6, 4, 2, 3, 5, 4, 7, 8 ],
     [ 8, 7, 1, 4, 2, 3, 5, 6 ]
   ],
-  Size = 8.*/
+  Size = 8.
 
-board(Board, Size):-
+/*board(Board, Size):-
   Board = [
     [3, 5, 5, 1, 6, 3],
     [1, 6, 1, 2, 6, 3],
@@ -24,7 +24,7 @@ board(Board, Size):-
     [5, 2, 4, 6, 3, 1],
     [1, 2, 3, 5, 5, 5]
   ],
-  Size = 6.
+  Size = 6.*/
 
 test:-
   board(Board, Size),
