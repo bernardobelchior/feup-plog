@@ -1,13 +1,40 @@
 print_board(Board, Size):-
-  maplist(print_line(Size), Board).
+  Base is floor(log(10, Size)) + 1,
 
-print_line(Size, Line):-
+  nl, write('~ Hitori ~'), nl, nl, nl,
+
+  maplist(print_line(Size, Base), Board), !.
+
+print_line(Size, Base, Line):-
   write('|'),
-  maplist(print_number(Size), Line),
+  maplist(print_number(Size, Base), Line),
   nl.
 
-print_number(Size, Number):-
+print_number(Size, Base, Number):-
   Number > Size,
-  write(' |').
-print_number(_, Number):-
-  write(Number), write('|').
+  number_codes(Base, NC),
+  atom_codes(BaseAtom, NC),
+  atom_concat('~', BaseAtom, Tmp),
+  atom_concat(Tmp, 'c', Format),
+  format(Format, 32),
+  write('|').
+print_number(_, Base, Number):-
+  SpaceBefore is Base - floor(log(10, Number)) - 1,
+  number_codes(SpaceBefore, NC),
+  atom_codes(SBAtom, NC),
+  atom_concat('~', SBAtom, Tmp),
+  atom_concat(Tmp, 'c', Format),
+  format(Format, 32), write(Number),
+  write('|').
+
+print_fd_statistics:-
+  fd_statistics(resumptions, Resumptions),
+  fd_statistics(entailments, Entailments),
+  fd_statistics(prunings, Prunings),
+  fd_statistics(backtracks, Backtracks),
+  fd_statistics(constraints, Constraints),
+  write('Resumptions: '), write(Resumptions), nl,
+  write('Entailments: '), write(Entailments), nl,
+  write('Prunings: '), write(Prunings), nl,
+  write('Backtracks: '), write(Backtracks), nl,
+  write('Constraints: '), write(Constraints), nl.
