@@ -54,7 +54,7 @@ count_blacks(Size, [Elem | Rest], [IsBlack | Blacks]):-
 
 
 
-%
+%no_surrounded_tiles(+Size, +Board)
 no_surrounded_tiles(Size, Board):-
   no_surrounded_tiles(Size, Board, 1, 1).
 

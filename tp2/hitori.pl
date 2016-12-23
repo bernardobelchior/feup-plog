@@ -67,14 +67,14 @@ solve_and_print(Board, Size):-
   print_fd_statistics.
 
 generate_and_print(Size, Board):-
-  statistics(runtime, [Start | _]),
+  statistics(total_runtime, [Start | _]),
 
 
   generate(Size, Board),
   print_board(Board, Size),
 
 
-  statistics(runtime, [End | _]),
+  statistics(total_runtime, [End | _]),
   TotalTime is End - Start,
 
 
